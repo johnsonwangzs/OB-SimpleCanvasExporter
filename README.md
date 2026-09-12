@@ -22,7 +22,7 @@ The export captures the current view, including changes that have not yet been s
 
 The HTML viewer initially fits the entire Canvas into the window. Click **100%** to view cards at their original CSS pixel dimensions. Drag the background to pan, scroll inside a card to read its contents, and use `Ctrl+wheel` to zoom. Cards do not reflow when the browser window changes size or expand to fit their contents.
 
-## Supported features in v0.1.0
+## Supported features in v0.1.1
 
 | Content | Export behavior |
 | --- | --- |
@@ -37,7 +37,7 @@ The HTML viewer initially fits the entire Canvas into the window. Click **100%**
 
 ## Limitations
 
-This initial release is intended for desktop Obsidian. File cards, web cards, and groups retain their positions but display placeholders. Embedded notes, PDFs, remote images, and other unsupported resources are replaced with placeholders and reported in the export notes.
+This release is intended for desktop Obsidian. File cards, web cards, and groups retain their positions but display placeholders. Embedded notes, PDFs, remote images, and other unsupported resources are replaced with placeholders and reported in the export notes.
 
 Dynamic plugin components, complex SVG content, and theme decorations that rely on pseudo-elements may not be reproduced completely. Exported files do not execute scripts from notes or run Obsidian plugins.
 
@@ -63,7 +63,7 @@ For manual installation, place these three files in your vault's `.obsidian/plug
 
 Then enable **Simple Canvas Exporter** in Obsidian's community plugin settings. The plugin ZIP package includes the `simple-canvas-exporter` directory.
 
-Requires desktop Obsidian **1.13.7 or later**. The plugin has been tested on Windows with Obsidian **1.13.7**, SimpleBadge **0.5.0**, and Microsoft Edge. Other desktop platforms, later versions, and third-party themes still require testing.
+Requires desktop Obsidian **1.13.7 or later**. The plugin has been tested on Windows with Obsidian **1.13.7**, SimpleBadge **0.5.0**, and Microsoft Edge. Version 0.1.1 fixes missing connection lines with Prism **3.8.0** and Style Settings **1.0.9**, verified against native Obsidian styles and the exported HTML/CSS. Other desktop platforms, later versions, and other third-party themes still require testing. See the [changelog](CHANGELOG.md) for release notes.
 
 ## Development
 

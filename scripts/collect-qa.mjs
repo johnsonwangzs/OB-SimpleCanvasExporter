@@ -6,7 +6,7 @@ const base = join(resolve(process.argv[2]), '.obsidian/plugins/simple-canvas-exp
 const result = JSON.parse(await readFile(join(base, 'qa-result.json'), 'utf8'));
 if (result.error) throw Error(result.error);
 const behavior = JSON.parse(await readFile(join(base, 'qa-behavior.json'), 'utf8'));
-if (!behavior.noOverwrite || !behavior.cancellationCleanup || !behavior.unsavedSnapshot) throw Error('Behavior checks did not finish.');
+if (!behavior.noOverwrite || !behavior.cancellationCleanup || !behavior.unsavedSnapshot || !behavior.nativeEdgePaint || !behavior.coloredEdgePaint) throw Error('Behavior and edge paint checks did not finish.');
 await mkdir('qa', { recursive: true });
 for (const [from, to] of Object.entries({
   'qa-export.html': 'example-canvas.html',
@@ -17,5 +17,8 @@ for (const [from, to] of Object.entries({
   'qa-fixture-result.json': 'fixture-result.json',
   'qa-behavior.json': 'behavior.json',
   'qa-layout.json': 'layout.json',
+  'qa-edge-paint.json': 'edge-paint.json',
+  'qa-colored-edges.html': 'colored-edges.html',
+  'qa-colored-edge-paint.json': 'colored-edge-paint.json',
 })) await copyFile(join(base, from), join('qa', to));
 console.log(`Collected ${result.cards} cards and ${result.connections} connections; behavior checks passed.`);

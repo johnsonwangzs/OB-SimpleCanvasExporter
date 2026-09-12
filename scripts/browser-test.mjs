@@ -18,7 +18,7 @@ try {
   await page.waitForFunction(()=>document.querySelector('.sce-viewport')?.classList.contains('sce-interactive'));
   const metrics=await page.evaluate(()=>({
     cards:Array.from(document.querySelectorAll('.sce-card')).map(e=>({id:e.dataset.nodeId,width:parseFloat(getComputedStyle(e).width),height:parseFloat(getComputedStyle(e).height),x:parseFloat(e.style.left)-Number(document.querySelector('.sce-scene').dataset.originX),y:parseFloat(e.style.top)-Number(document.querySelector('.sce-scene').dataset.originY),text:e.textContent,scroll:e.querySelector('.sce-card-scroll').scrollHeight,client:e.querySelector('.sce-card-scroll').clientHeight})),
-    edges:Array.from(document.querySelectorAll('[data-edge-id]')).map(e=>({id:e.dataset.edgeId,from:e.dataset.fromNode,to:e.dataset.toNode,path:e.querySelector('path').getAttribute('d'),source:e.dataset.pathSource,arrows:e.querySelectorAll('polygon').length})),
+    edges:Array.from(document.querySelectorAll('[data-edge-id]')).map(e=>{const path=e.querySelector('path'),style=getComputedStyle(path);return {id:e.dataset.edgeId,from:e.dataset.fromNode,to:e.dataset.toNode,path:path.getAttribute('d'),source:e.dataset.pathSource,arrows:e.querySelectorAll('polygon').length,stroke:style.stroke,strokeWidth:parseFloat(style.strokeWidth),strokeOpacity:parseFloat(style.strokeOpacity)};}),
     badges:document.querySelectorAll('.badge').length,links:document.querySelectorAll('a.internal-link').length,
     protocols:Array.from(document.querySelectorAll('[src],[href]')).map(e=>e.getAttribute('src')??e.getAttribute('href')).filter(u=>/^(app:|obsidian:|blob:|file:)/i.test(u)),
   }));
@@ -26,7 +26,7 @@ try {
   await page.screenshot({path:'qa/export-overview.png'});
   assert.equal(metrics.cards.length,25);assert.equal(metrics.edges.length,24);
   for(const n of source.nodes){const c=metrics.cards.find(c=>c.id===n.id);assert.ok(c,`Missing card ${n.id}`);assert.ok(Math.abs(c.width-n.width)<1);assert.ok(Math.abs(c.height-n.height)<1);assert.equal(c.x,n.x);assert.equal(c.y,n.y);}
-  for(const e of source.edges){const edge=metrics.edges.find(x=>x.id===e.id);assert.equal(edge.from,e.fromNode);assert.equal(edge.to,e.toNode);assert.equal(edge.arrows,1);}
+  for(const e of source.edges){const edge=metrics.edges.find(x=>x.id===e.id);assert.equal(edge.from,e.fromNode);assert.equal(edge.to,e.toNode);assert.equal(edge.arrows,1);assert.notEqual(edge.stroke,'none',`Invisible edge ${e.id}`);assert.ok(edge.strokeWidth>0&&edge.strokeOpacity>0,`Invisible edge ${e.id}`);}
   assert.equal(metrics.links,0);assert.ok(metrics.badges>=13);assert.deepEqual(metrics.protocols,[]);
   const typography=await page.locator('.sce-card').evaluateAll(cards=>cards.map(c=>{const p=c.querySelector('p,center'),s=getComputedStyle(p);return {id:c.dataset.nodeId,width:parseFloat(s.width),font:s.fontFamily,fontSize:s.fontSize,lineHeight:s.lineHeight,paragraphMargin:s.margin};}));
   for(const native of reference){

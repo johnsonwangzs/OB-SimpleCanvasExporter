@@ -7,21 +7,24 @@ import { startViewer } from './viewer';
 import { type Strings } from './i18n';
 
 export interface ExportResult { html:string; warnings:string[]; cards:number; connections:number; nativePaths:number; elapsedMs:number; metrics:{id:string;scrollHeight:number;clientHeight:number}[] }
-interface EdgeRecord { edge:CanvasEdge; geometry:EdgeGeometry; native:NativePath|undefined; bounds:Bounds }
+interface EdgeRecord { edge:CanvasEdge; geometry:EdgeGeometry; nativeHTML:string|undefined; bounds:Bounds }
 export async function exportCanvas(app:App,snap:Snapshot,s:Strings,signal:AbortSignal,progress:(done:number,total:number)=>void=()=>{}):Promise<ExportResult> {
-  const started=performance.now(),warnings=new Set(snap.data.warnings),bank=new StyleBank(),renderer=new Renderer(app,snap,bank,signal,warnings);
-  const nodes=new Map(snap.data.nodes.map(n=>[n.id,n]));
-  // Capture paths synchronously from the same snapshot, before asynchronous rendering.
-  const records:EdgeRecord[]=snap.data.edges.map(edge=>{
-    const a=nodes.get(edge.fromNode)!,b=nodes.get(edge.toNode)!,geometry=fallbackGeometry(edge,a,b);
-    const candidate=matchingPath(snap.native,edge,a,b);
-    const native=candidate?{...candidate,line:candidate.line.cloneNode(true) as SVGElement,ends:candidate.ends?.cloneNode(true) as SVGElement}:undefined;
-    return {edge,geometry,native,bounds:native?.bounds??geometry.bounds};
-  });
-  const nativePaths=records.filter(r=>r.native).length;
-  if(nativePaths<records.length)warnings.add(`${records.length-nativePaths} connection(s) used the compatible curve renderer.`);
-  const cards:RenderedCard[]=[];
+  const started=performance.now(),warnings=new Set(snap.data.warnings),bank=new StyleBank();
+  signal.throwIfAborted();
+  const renderer=new Renderer(app,snap,bank,signal,warnings);
   try {
+    const nodes=new Map(snap.data.nodes.map(n=>[n.id,n]));
+    // Freeze geometry and computed styles while the SVG still has its live ancestors.
+    // Themes such as Prism scope edge paint to parent groups and inherited variables.
+    const records:EdgeRecord[]=snap.data.edges.map((edge,index)=>{
+      const a=nodes.get(edge.fromNode)!,b=nodes.get(edge.toNode)!,geometry=fallbackGeometry(edge,a,b);
+      const candidate=matchingPath(snap.native,edge,a,b);
+      const nativeHTML=candidate?freezeNativeEdge(candidate,index,renderer,bank,snap):undefined;
+      return {edge,geometry,nativeHTML,bounds:candidate?.bounds??geometry.bounds};
+    });
+    const nativePaths=records.filter(r=>r.nativeHTML!==undefined).length;
+    if(nativePaths<records.length)warnings.add(`${records.length-nativePaths} connection(s) used the compatible curve renderer.`);
+    const cards:RenderedCard[]=[];
     let done=0;progress(0,snap.data.nodes.length);
     for(let batch=0;batch<snap.data.nodes.length;batch+=4){
       const rendered=await Promise.all(snap.data.nodes.slice(batch,batch+4).map(async(n,offset)=>{
@@ -32,7 +35,7 @@ export async function exportCanvas(app:App,snap:Snapshot,s:Strings,signal:AbortS
       }));cards.push(...rendered);
     }
     progress(cards.length,cards.length);signal.throwIfAborted();
-    const edgeHTML=records.map((r,i)=>renderEdge(r,i,renderer,bank,snap.document));
+    const edgeHTML=records.map(r=>renderEdge(r,renderer,bank,snap.document));
     const edgeBounds=records.map(r=>r.edge.label?{minX:Math.min(r.bounds.minX,r.geometry.center.x-150),maxX:Math.max(r.bounds.maxX,r.geometry.center.x+150),minY:Math.min(r.bounds.minY,r.geometry.center.y-100),maxY:Math.max(r.bounds.maxY,r.geometry.center.y+100)}:r.bounds);
     const b=sceneBounds(snap.data.nodes,edgeBounds),padding=40,dx=-b.minX+padding,dy=-b.minY+padding,width=b.maxX-b.minX+2*padding,height=b.maxY-b.minY+2*padding;
     const bodyClass=bank.add(theme(snap));
@@ -43,7 +46,7 @@ export async function exportCanvas(app:App,snap:Snapshot,s:Strings,signal:AbortS
     const html=`<!doctype html>
 <html lang="${s.export==='导出'?'zh-CN':'en'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src data:; base-uri 'none'; form-action 'none'">
-<meta name="generator" content="Simple Canvas Exporter 0.1.0"><title>${esc(title)}</title>
+<meta name="generator" content="Simple Canvas Exporter 0.1.1"><title>${esc(title)}</title>
 <style>${viewerCSS}\n${bank.css()}</style></head><body class="${bodyClass}">
 <header class="sce-toolbar"><div class="sce-title" title="${esc(title)}">${esc(title)}</div><span class="sce-count">${cards.length} ${esc(s.cards)} · ${records.length} ${esc(s.connections)}</span><nav class="sce-controls" aria-label="Canvas"><output class="sce-zoom" aria-live="polite">100%</output>${buttons}</nav></header>
 <main class="sce-viewport" tabindex="0" aria-label="${esc(title)}"><div class="sce-scene" data-width="${width}" data-height="${height}" data-origin-x="${dx}" data-origin-y="${dy}" style="width:${width}px;height:${height}px">
@@ -54,18 +57,32 @@ ${nodeHTML}${labels}${cards.length?'':`<div class="sce-empty">${esc(s.empty)}</d
   } finally {renderer.dispose();}
 }
 
-function renderEdge(r:EdgeRecord,index:number,renderer:Renderer,bank:StyleBank,doc:Document):string {
+function freezeNativeEdge(native:NativePath,index:number,renderer:Renderer,bank:StyleBank,snap:Snapshot):string {
+  let line=native.line,ends=native.ends;
+  let probe:SVGSVGElement|undefined;
+  try {
+    // Obsidian detaches some offscreen edges. Reattach copies of their complete
+    // native groups so theme selectors and inherited color variables still apply.
+    if(!line.isConnected||(ends&&!ends.isConnected)) {
+      probe=snap.document.defaultView!.createSvg('svg',{cls:'canvas-edges'});renderer.stage.appendChild(probe);
+      // Card staging uses zoom 1; edges retain the native zoom-dependent line width.
+      if(snap.native?.canvasEl)probe.style.setProperty('--zoom-multiplier',computed(snap.native.canvasEl).getPropertyValue('--zoom-multiplier'));
+      if(!line.isConnected){
+        const group=native.group.cloneNode(true) as SVGElement;probe.appendChild(group);
+        line=group.querySelector<SVGElement>('.canvas-display-path')!;
+      }
+      if(ends&&!ends.isConnected){ends=ends.cloneNode(true) as SVGElement;probe.appendChild(ends);}
+    }
+    return freezeTree(line,bank,`sce-e${index}`).outerHTML+(ends?freezeTree(ends,bank,`sce-a${index}`).outerHTML:'');
+  } finally {probe?.remove();}
+}
+
+function renderEdge(r:EdgeRecord,renderer:Renderer,bank:StyleBank,doc:Document):string {
+  if(r.nativeHTML!==undefined)return `<g data-edge-id="${esc(r.edge.id)}" data-from-node="${esc(r.edge.fromNode)}" data-to-node="${esc(r.edge.toNode)}" data-path-source="native">${r.nativeHTML}</g>`;
   const svg=doc.defaultView!.createSvg('svg',{cls:'canvas-edges'});renderer.stage.appendChild(svg);
   const edgeColor=resolveColor(r.edge.color,renderer.stage);if(edgeColor)svg.style.setProperty('--canvas-color',edgeColor);
   try {
-    if(r.native){
-      const line=r.native.line;svg.appendChild(line);
-      const path=freezeTree(line,bank,`sce-e${index}`).outerHTML;
-      if(r.native.ends)svg.appendChild(r.native.ends);
-      const ends=r.native.ends?freezeTree(r.native.ends,bank,`sce-a${index}`).outerHTML:'';
-      return `<g data-edge-id="${esc(r.edge.id)}" data-from-node="${esc(r.edge.fromNode)}" data-to-node="${esc(r.edge.toNode)}" data-path-source="native">${path}${ends}</g>`;
-    }
-    const sample=svg.createSvg('path',{cls:'canvas-display-path'});
+    const sample=svg.createSvg('g').createSvg('path',{cls:'canvas-display-path'});
     const color=resolveColor(r.edge.color,renderer.stage)||computed(sample).stroke||'#7e7e7e';
     const lineClass=bank.capture(sample,{fill:'none',stroke:color==='none'?'#7e7e7e':color,'stroke-width':computed(sample).strokeWidth||'2px'});
     const g=r.geometry,angles={top:180,right:270,bottom:0,left:90};

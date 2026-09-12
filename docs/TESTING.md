@@ -1,4 +1,4 @@
-# v0.1.0 验收记录
+# 验收记录
 
 日期：2026-09-12。环境：Windows、Obsidian 1.13.7、SimpleBadge 0.5.0。初始浏览器验收使用默认深色主题和 Microsoft Edge；发布前源码修正后的 Obsidian 回归使用开发 vault 当前的默认浅色主题。验证对象为 `example-canvas.canvas` 及隔离的补充样例。
 
@@ -11,6 +11,19 @@
 - 重新加载正式构建后，命令面板和网络提示对话框显示正常，实际生成 `example-canvas (4).html`，无导出警告。开发 vault 已恢复正式构建并清理本轮 QA 临时文件，原始 Canvas 的哈希保持不变。
 - 最低 Obsidian 版本调整为已实测的 1.13.7，中英文 README 和导出对话框补充导出期间的网络行为说明。
 - 本轮没有重新执行独立浏览器回归。下列浏览器交互和离线测试为初始实现的验收记录；本轮复验覆盖实际 Obsidian 渲染、布局度量及导出文件结构。
+
+## v0.1.1：Prism 连线修复回归
+
+环境：Obsidian 1.13.7、Prism 3.8.0、Style Settings 1.0.9、SimpleBadge 0.5.0。
+
+- 原因是导出器将连接线的 `path` 单独复制到临时 SVG，丢失 Prism 选择器依赖的父级 `g`，导致计算后的 `stroke` 为 `none`。修复后同步读取仍在原生视图中的 SVG 样式；对于 Obsidian 分离的屏幕外连接，复制完整父组后再读取样式，并继承原生 Canvas 的缩放变量以保留线宽。
+- Prism 样例的 24 条连接全部保留原生路径，包含 19 条在文档中的连接和 5 条被分离的连接。逐项比对线条与箭头的颜色、线宽、透明度、虚线和端点样式，均与原生参考值一致。
+- 独立的原生 Canvas 覆盖默认色、六种预设色、自定义 HEX 色、双向箭头和无箭头，共 8 条连接，全部通过样式及路径检查。
+- 将用户提供的原始导出与修复后的 Prism 导出按实际 CSS 声明归一化比较，25 张卡片的内容、尺寸和冻结样式没有变化，16 个 Badge 保留。
+- 默认浅色主题的完整 QA 同样通过：24 条示例连接、8 条彩色连接、快照、取消及编号保存检查正常；25 张卡片的可视高度差为 0，滚动高度差为 0–1 CSS 像素。正式构建、官方 lint 和 16 项单元测试通过。
+- 最终正式构建在 Prism 下通过命令面板生成 `example-canvas (2).html`：24 条原生路径均有有效描边，屏幕内外线宽一致；25 张卡片归一化后的内容及样式与原始导出完全相同。开发 vault 已重载正式构建并清理 QA 临时文件，原始 Canvas 和原始 HTML 均未改动。
+- Prism 的正文布局单独记录：原有导出在部分长卡片上存在滚动高度差，本次仅修复连线，没有修改该行为。`--qa-edges` 明确跳过默认主题的正文高度阈值，保留测量结果；`--qa` 仍执行原有正文高度断言。
+- 本轮检查在实际 Obsidian 中采集计算样式，并解析导出的 HTML/CSS 核对结果；没有重新执行独立浏览器交互或离线回归。
 
 ## 初始实现验收记录
 
@@ -51,6 +64,8 @@ pnpm deploy:dev "/path/to/development-vault"
 node scripts/collect-qa.mjs "/path/to/development-vault"
 pnpm test:browser
 ```
+
+测试主题连线兼容性时，可将构建命令替换为 `node esbuild.config.mjs --qa-edges`。该模式仍执行全部连线、Badge、取消、快照及保存检查，同时记录正文布局差值，但不套用默认主题的正文高度阈值。`behavior.json` 中的 `nativeLayoutChecked` 表明是否执行了该阈值检查。连线参考和附加彩色样例保存在 `edge-paint.json`、`colored-edge-paint.json` 和 `colored-edges.html`；浏览器测试也会检查线条是否具有有效的描边。
 
 浏览器测试使用本机 Edge，可通过环境变量 `EDGE_PATH` 指定浏览器可执行文件。产物保存在项目 `qa/`，包括 HTML、原生参考数据、浏览器度量和全图/正文/变体截图。
 
