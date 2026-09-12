@@ -1,0 +1,12 @@
+# Keep text files as LF in both the repository and the working tree.
+* text=auto eol=lf
+*.ts text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+*.canvas text eol=lf
+*.png binary
+*.zip binary

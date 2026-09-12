@@ -1,0 +1,7 @@
+import { build } from 'esbuild';
+import { mkdir } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+await mkdir('qa',{recursive:true});
+await build({entryPoints:['src/canvas.ts'],outfile:'qa/core.mjs',bundle:true,format:'esm',platform:'node'});
+await build({entryPoints:['src/async.ts'],outfile:'qa/async.mjs',bundle:true,format:'esm',platform:'node'});
+const result=spawnSync(process.execPath,['--test','tests/core.test.mjs','tests/async.test.mjs'],{stdio:'inherit'});process.exitCode=result.status??1;

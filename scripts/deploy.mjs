@@ -1,0 +1,13 @@
+import { copyFile, mkdir, readFile, realpath, stat } from 'node:fs/promises';
+import { resolve, join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const project = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+if (!process.argv[2]) throw Error('Pass the development vault directory.');
+const vault = await realpath(resolve(process.argv[2]));
+if (!(await stat(join(vault, '.obsidian'))).isDirectory()) throw Error('Not an Obsidian vault.');
+const manifest = JSON.parse(await readFile(join(project,'manifest.json'),'utf8'));
+if (!/^[a-z0-9-]+$/.test(manifest.id)) throw Error('Invalid plugin ID.');
+const dest = join(vault,'.obsidian','plugins',manifest.id);
+await mkdir(dest,{recursive:true});
+for (const file of ['main.js','manifest.json','styles.css']) await copyFile(join(project,file),join(dest,file));
+console.log(`Deployed ${manifest.name} ${manifest.version} to ${dest}`);

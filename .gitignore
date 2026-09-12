@@ -1,0 +1,13 @@
+# Dependencies and package cache
+node_modules/
+/.pnpm-store/
+
+# Generated files
+/main.js
+/qa/
+/release/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
