@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+
+- Add a Background popup to exported HTML with six solid presets, a native color picker, validated 3-/6-digit HEX input, live preview, and restoration of the exact export color.
+- Remember colors in the current browser per export and document address, with isolated handling of unavailable storage, invalid records, and failed saves or resets. Preferences do not modify the HTML file.
+- Keep card and interface colors, connections, search/Badge conditions, zoom, pan, and reading positions intact. Coordinate popup focus and Escape with Badge and reader controls; retain original colors when printing.
+- Add standalone browser coverage for the production export assembler, unique export IDs, persistence and storage failures, responsive/touch controls, no-script fallback, and captured default/Prism content.
+
 ## 0.4.0
 
 - Add Badge filters below search in exported HTML, with original colors, distinct-card counts, multi-select Any/All matching, and a searchable full catalog. Limit the inline catalog to two rows and retain a visible selection count.

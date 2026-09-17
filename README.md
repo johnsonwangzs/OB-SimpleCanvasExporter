@@ -62,7 +62,15 @@ Exports made with 0.4.0 list badges actually present in the Canvas's text cards 
 
 **SimpleBadge is optional.** Documents without badges hide the extra controls and retain search and reading. Existing standard `span.badge` markup works even without SimpleBadge installed, using the exporter's built-in fallback styling. Theme colors and normalized custom HEX colors retain separate identities, including same-name badges in different colors. Empty badges, code examples, explicitly hidden content, and placeholders are excluded. Re-export older HTML files to gain these controls.
 
-## Supported features in v0.4.0
+## Change the Canvas background
+
+Exports made with 0.5.0 add a **Background** button to the toolbar. Choose one of six solid colors, use the native color picker, or enter a 3- or 6-digit HEX color with or without `#`. Colors preview immediately; HEX commits on Enter or blur. Invalid input retains the last valid color. **Restore export color** also removes this document's saved preference.
+
+Only the Canvas background changes. Cards, text, connections, controls, and the reader retain their exported colors; transparent or translucent cards naturally show the new background underneath. Changing colors preserves zoom, position, search, badge filters, and reading scroll. Escape closes the popup; printing uses the original export color.
+
+The viewer tries to remember the color in the current browser, separately for each export and file address. If storage is unavailable, colors still work for the current visit and the popup explains this. Persistence for directly opened local HTML depends on the browser. Preferences do not modify the HTML: moving the file, using another browser, or clearing browser data may lose them, and sharing the file retains its original color. Re-export older HTML to gain this feature.
+
+## Supported features in v0.5.0
 
 | Content | Export behavior |
 | --- | --- |
@@ -115,6 +123,7 @@ pnpm check
 pnpm test:search
 pnpm test:reader
 pnpm test:badges
+pnpm test:background
 ```
 
 To deploy the built plugin to a development vault:
@@ -127,7 +136,7 @@ pnpm deploy:dev "/path/to/development-vault"
 
 `pnpm check` runs the official Obsidian ESLint rules with zero warnings allowed, unit tests, the TypeScript production build, and release metadata checks. `pnpm release` runs these checks and copies the runtime files and license to `release/simple-canvas-exporter/`. The QA module lives in `tests/` and is excluded from production builds.
 
-`pnpm test:search` generates its own offline browser fixtures and uses the installed Edge browser (override with `EDGE_PATH`). It does not require Obsidian to be running. It also checks previously captured default/Prism exports when present in `qa/`. The standalone viewer uses standard browser DOM APIs; only its two Obsidian-specific DOM helper lint rules are disabled in the ESLint configuration.
+`pnpm test:search` generates its own offline browser fixtures and uses the installed Edge browser (override with `EDGE_PATH`). It does not require Obsidian to be running. It also checks previously captured default/Prism exports when present in `qa/`. `pnpm test:background` checks color controls, storage and failure handling, keyboard/touch input, printing, and captured content. The standalone viewer uses standard browser DOM APIs: its ESLint configuration permits the native DOM helpers and `localStorage` needed outside Obsidian, while preserving the plugin's other restrictions.
 
 Pass the development vault path explicitly; the project does not configure a default vault. You can also invoke `node scripts/deploy.mjs "/path/to/development-vault"` directly.
 

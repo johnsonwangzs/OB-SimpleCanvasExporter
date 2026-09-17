@@ -6,6 +6,7 @@ export function startViewer(currentLabel='Current'):void {
   const zoomLabel=document.querySelector<HTMLElement>('.sce-zoom')!;
   const toolbar=document.querySelector<HTMLElement>('.sce-toolbar')!;
   const reader=document.querySelector<HTMLElement>('.sce-reader');
+  let closeBackgroundPopup:(focus?:boolean)=>void=()=>{};
   const width=Number(scene.dataset.width),height=Number(scene.dataset.height);
   let scale=1,x=0,y=0,drag:{id:number;x:number;y:number;startX:number;startY:number}|undefined;
   let oldWidth=viewport.clientWidth,oldHeight=viewport.clientHeight;
@@ -53,6 +54,120 @@ export function startViewer(currentLabel='Current'):void {
   const search=document.querySelector<HTMLElement>('.sce-search')!;
   search.hidden=false;
   const layoutToolbar=()=>{const top=`${toolbar.getBoundingClientRect().height}px`;viewport.style.top=top;if(reader)reader.style.top=top;};
+
+  function setupBackground():void {
+    const trigger=document.querySelector<HTMLButtonElement>('.sce-background-trigger');
+    const popup=document.querySelector<HTMLElement>('.sce-background-popup');
+    if(!trigger||!popup)return;
+    const hex=popup.querySelector<HTMLInputElement>('.sce-background-hex')!;
+    const picker=popup.querySelector<HTMLInputElement>('.sce-background-picker')!;
+    const reset=popup.querySelector<HTMLButtonElement>('.sce-background-reset')!;
+    const error=popup.querySelector<HTMLElement>('.sce-background-error')!;
+    const message=popup.querySelector<HTMLOutputElement>('.sce-background-status')!;
+    const presets=Array.from(popup.querySelectorAll<HTMLButtonElement>('.sce-background-preset'));
+    const original=getComputedStyle(viewport).backgroundColor;
+    let originalHex='',color:string|undefined,pending=false,resetFailed=false,key='';
+    // Convert only the picker display; restoring always removes the CSS override.
+    try {
+      const sample=document.createElement('canvas');sample.width=sample.height=1;
+      const context=sample.getContext('2d');
+      if(context){context.fillStyle=original;context.fillRect(0,0,1,1);const rgba=context.getImageData(0,0,1,1).data;
+        if(rgba[3]===255)originalHex='#'+Array.from(rgba.slice(0,3),n=>n.toString(16).padStart(2,'0')).join('').toUpperCase();}
+    } catch { /* The picker remains usable even if color conversion is unavailable. */ }
+    function normalize(raw:string):string|undefined {
+      let value=raw.trim().replace(/^#/,'');
+      if(!/^(?:[a-f\d]{3}|[a-f\d]{6})$/i.test(value))return;
+      if(value.length===3)value=Array.from(value,c=>c+c).join('');
+      return '#'+value.toUpperCase();
+    }
+    function sync():void {
+      hex.value=color??originalHex;hex.placeholder=popup!.dataset.original!;
+      picker.value=color??(originalHex||'#ffffff');
+      reset.disabled=color===undefined&&!resetFailed;
+      for(const button of presets)button.setAttribute('aria-pressed',String(button.dataset.color===color));
+      error.hidden=true;hex.setAttribute('aria-invalid','false');
+    }
+    function remember():void {
+      pending=false;
+      message.setAttribute('aria-live','polite');
+      try {
+        if(!key)throw Error('No export identity');
+        if(color===undefined)localStorage.removeItem(key);else localStorage.setItem(key,color);
+        resetFailed=false;message.textContent=color===undefined?popup!.dataset.original!:popup!.dataset.saved!;
+      } catch {
+        resetFailed=color===undefined;
+        message.textContent=resetFailed?popup!.dataset.resetFailed!:popup!.dataset.session!;
+      }
+      reset.disabled=color===undefined&&!resetFailed;
+    }
+    function apply(next:string|undefined,save=true):void {
+      color=next;resetFailed=false;
+      if(color===undefined)document.body.style.removeProperty('--sce-canvas-bg');
+      else document.body.style.setProperty('--sce-canvas-bg',color);
+      sync();pending=save;
+    }
+    function commitHex(report=true):void {
+      if(hex.value===(color??originalHex))return;
+      const next=normalize(hex.value);
+      if(next){apply(next);remember();}
+      else if(report){error.hidden=false;hex.setAttribute('aria-invalid','true');}
+    }
+    function position():void {
+      const visual=window.visualViewport,left=visual?.offsetLeft??0,top=visual?.offsetTop??0;
+      const w=visual?.width??innerWidth,h=visual?.height??innerHeight;
+      popup!.style.width=`${Math.min(288,Math.max(0,w-16))}px`;
+      popup!.style.maxHeight=`${Math.max(0,h-16)}px`;
+      const button=trigger!.getBoundingClientRect(),rect=popup!.getBoundingClientRect();
+      popup!.style.left=`${Math.max(left+8,Math.min(button.right-rect.width,left+w-rect.width-8))}px`;
+      popup!.style.top=`${Math.max(top+8,Math.min(button.bottom+8,top+h-rect.height-8))}px`;
+    }
+    closeBackgroundPopup=(focus=false)=>{
+      if(pending)remember();
+      popup.hidden=true;trigger.setAttribute('aria-expanded','false');sync();
+      if(focus)trigger.focus({preventScroll:true});
+    };
+    // File URL storage is browser-dependent. Every access, including the getter, can throw.
+    try {
+      const id=document.body.dataset.sceExportId;
+      if(id){const address=new URL(location.href);address.search='';address.hash='';key=`sce:bg:v1:${id}:${address.href}`;
+        const saved=localStorage.getItem(key);
+        if(saved&&/^#[a-f\d]{6}$/i.test(saved))color=saved.toUpperCase();}
+      message.textContent=color?popup.dataset.saved!:popup.dataset.original!;
+    } catch {message.textContent=popup.dataset.session!;}
+    apply(color,false);trigger.hidden=false;
+    trigger.addEventListener('click',event=>{
+      if(!popup.hidden){closeBackgroundPopup();return;}
+      closeBadgePopup();popup.hidden=false;trigger.setAttribute('aria-expanded','true');sync();position();
+      if(event.detail===0)(presets.find(button=>button.getAttribute('aria-pressed')==='true')??picker).focus({preventScroll:true});
+    });
+    popup.querySelector('.sce-background-close')!.addEventListener('click',()=>closeBackgroundPopup(true));
+    for(const button of presets)button.addEventListener('click',()=>{apply(button.dataset.color);remember();});
+    reset.addEventListener('click',()=>{
+      const focused=document.activeElement===reset;apply(undefined);remember();
+      if(focused)(resetFailed?reset:picker).focus({preventScroll:true});
+    });
+    picker.addEventListener('input',()=>{const next=normalize(picker.value);if(next){apply(next);message.setAttribute('aria-live','off');message.textContent=next;}});
+    picker.addEventListener('change',()=>{const next=normalize(picker.value);if(next){apply(next);remember();}});
+    hex.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.isComposing){event.preventDefault();commitHex();}});
+    hex.addEventListener('blur',()=>{if(!popup.hidden)commitHex();});
+    document.addEventListener('pointerdown',event=>{
+      const target=event.target as Element;
+      if(popup.hidden||popup.contains(target)||trigger.contains(target))return;
+      if(document.activeElement===hex)commitHex(false);
+      closeBackgroundPopup();
+      // Dismissal on empty Canvas must not start the pan gesture underneath it.
+      if(viewport.contains(target)&&!target.closest('.sce-card,.sce-reader-anchor')){event.preventDefault();event.stopPropagation();}
+    },true);
+    document.addEventListener('keydown',event=>{
+      if(event.key==='Escape'&&!event.isComposing&&!event.defaultPrevented&&!popup.hidden){
+        event.preventDefault();event.stopPropagation();closeBackgroundPopup(true);
+      }
+    },true);
+    document.addEventListener('focusin',event=>{if(!popup.hidden&&!popup.contains(event.target as Node)&&event.target!==trigger)closeBackgroundPopup();});
+    const reposition=()=>{if(!popup.hidden)position();};
+    window.addEventListener('resize',reposition);window.visualViewport?.addEventListener('resize',reposition);window.visualViewport?.addEventListener('scroll',reposition);
+    const observer=new ResizeObserver(reposition);observer.observe(toolbar);observer.observe(popup);
+  }
 
   // Everything below is serialized with this function: no imported runtime helpers.
   interface Normalized {text:string;starts?:Uint32Array;ends?:Uint32Array}
@@ -172,6 +287,7 @@ export function startViewer(currentLabel='Current'):void {
     badgeReset.addEventListener('click',()=>{selectedBadges.clear();badgeMode.value='any';updateBadgeControls();schedule();});
     badgeMore.addEventListener('click',()=>{
       if(!badgePopup.hidden){closeBadgePopup();return;}
+      closeBackgroundPopup();
       badgePopup.hidden=false;badgeMore.setAttribute('aria-expanded','true');positionBadgePopup();badgeFind.focus({preventScroll:true});
     });
     badgePopup.querySelector('.sce-badge-close')!.addEventListener('click',()=>closeBadgePopup(true));
@@ -555,7 +671,7 @@ export function startViewer(currentLabel='Current'):void {
       index=buildIndex();schedule();
     }
   },true);
-  setupBadges();
+  setupBackground();setupBadges();
   layoutToolbar();new ResizeObserver(layoutToolbar).observe(toolbar);
   viewport.classList.add('sce-interactive');fit();
   new ResizeObserver(()=>{syncViewport();paint();}).observe(viewport);

@@ -58,7 +58,15 @@ HTML 初始适应全图。点击 **100%** 查看原始 CSS 像素大小；拖动
 
 **SimpleBadge 是可选的。** 没有 Badge 时，筛选区自动隐藏，搜索和阅读照常使用；没有安装 SimpleBadge、但正文已有标准 `span.badge` 时，导出器使用内置兼容样式，仍能识别和筛选。主题色、自定义 HEX 色、同名异色均分别保留；空白 Badge、代码示例、显式隐藏和占位内容不参与目录。已有的旧 HTML 需要重新导出才能使用此功能。
 
-## v0.4.0 支持范围
+## 更换画布背景
+
+0.5.0 新导出的 HTML 在顶部提供 **背景** 按钮，可选六种常用纯色、使用系统选色器，或输入带 / 不带 `#` 的三位、六位 HEX。选色即时预览；HEX 按 Enter 或离开输入框时生效，无效输入保留上一有效颜色。**恢复导出原色** 同时清除此文件的颜色记忆。
+
+只调整画布空白区域，保留卡片、文字、连线、工具栏和阅读面板的原配色；透明或半透明卡片会透出新背景。换色不改变缩放、画布位置、搜索、Badge 筛选或正文滚动。Escape 关闭背景浮层，打印使用导出原色。
+
+颜色尽量保存在当前浏览器中，按每份导出和文件地址隔离。浏览器禁止存储时仍可换色，浮层提示“仅本次打开有效”；直接打开本地 HTML 时的记忆能力取决于浏览器。偏好不写回 HTML：移动文件、更换浏览器或清理浏览器数据后不保证保留，分享给别人时仍从导出原色开始。旧 HTML 需要重新导出。
+
+## v0.5.0 支持范围
 
 | 内容 | 行为 |
 | --- | --- |
@@ -99,6 +107,7 @@ pnpm check
 pnpm test:search
 pnpm test:reader
 pnpm test:badges
+pnpm test:background
 pnpm deploy:dev "/path/to/development-vault"
 ```
 
@@ -109,6 +118,8 @@ pnpm deploy:dev "/path/to/development-vault"
 目录按用途组织：`src/` 保存插件源码，`tests/` 保存测试及固定样例，`scripts/` 保存开发脚本，`docs/` 保存补充文档，`assets/` 保存 README 图片。依赖、包缓存、生成的 `main.js`、`qa/` 测试产物和 `release/` 发布包均不提交到 Git。清理 `qa/` 后，可按[验收文档](docs/TESTING.md)重新生成所需数据。
 
 代码职责：`canvas.ts` 校验与几何计算，`runtime.ts` 当前视图及原生路径适配，`render.ts` 正文渲染，`styles.ts` 样式快照和静态清理，`assets.ts` 图片内嵌，`export.ts` 组装与保存，`viewer-html.ts` 阅读器工具栏，`viewer.ts` 浏览器阅读与搜索交互。`pnpm test:search` 使用本机 Edge，独立生成测试 HTML，不依赖正在运行的 Obsidian；可用 `EDGE_PATH` 指定浏览器。
+
+`pnpm test:background` 验证颜色、记忆与降级、键盘 / 触屏、打印和真实冻结内容的兼容性。浏览器阅读器没有 Obsidian `App`，其 ESLint 配置仅为该文件允许原生 `localStorage`；插件本体继续使用官方限制。
 
 详细验收结果与复现流程见 [TESTING.md](docs/TESTING.md)，原始设计见 [DESIGN.zh-CN.md](docs/DESIGN.zh-CN.md)。GitHub 上传及社区提交流程见英文[发布指南](docs/RELEASING.md)。
 
