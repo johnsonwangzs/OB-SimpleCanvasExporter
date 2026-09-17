@@ -1,5 +1,35 @@
 # 验收记录
 
+## v0.3.0：导出 HTML 阅读面板
+
+日期：2026-09-17。Windows、Obsidian 1.13.7、Prism 3.8.0、Style Settings 1.0.9、SimpleBadge 0.6.0；独立浏览器测试使用本机 Edge。
+
+- `pnpm check` 通过：官方 ESLint 0 错误/警告、16 项单元测试、TypeScript 正式构建和 0.3.0 版本元数据检查。
+- 新增 `pnpm test:reader`：验证非空文本卡片入口、完整正文、单面板替换、独立滚动、重复打开、焦点恢复、Esc、字号上下限及页面内保留。
+- 比较打开、滚动、字号调整和关闭前后的原卡片正文 HTML、尺寸、滚动高度及横纵滚动位置，保持相同。反复开关 8 次后画布中心和缩放无漂移；字号调整保留可见段落位置。
+- 冻结像素字体测试验证普通正文、标题、Badge 与代码按比例缩放，颜色和字体族保留。宽代码和表格在局部容器横向滚动，长文本不撑宽面板；正文副本的 ID、片段链接、ARIA 和 SVG 引用正确重映射。
+- 搜索正文副本不增加计数；手动阅读不改变当前搜索结果。结果导航能切换已打开的面板并定位第一处命中，输入、清空、零结果和“查看全部结果”保留阅读内容与位置。修改查询不替换正文节点或破坏原生文字选区；面板折叠内容的展开状态独立，Unicode 与跨行内标签匹配通过。
+- 深浅主题及中英文界面覆盖 1360、900、899、650、320px；检查正文和工具栏无页面横向溢出、字号 14～22px 可用、窄屏背景画布退出交互并可恢复。触屏入口、关闭、键盘导航、打印隐藏副本、缺少 Highlight API 和禁用 JavaScript 的降级均通过。
+- 复用默认主题及 Prism 的实际冻结正文后检查搜索和原卡片布局。正式构建在 Develop 开发库重载，插件列表显示 0.3.0；通过正常命令导出 `example-canvas (5).html`，无导出警告。实际文件也通过搜索与阅读面板回归：25 张卡片、24 条原生连线、16 个 Badge，`logits` 仍命中 6 张、8 处；检查了正文较长且含 Badge 的命中卡片，保存深色实际导出及浅色采集样本截图。
+- `pnpm test:search` 的原有回归继续通过，包括 500 张卡片、约 100 万字符的搜索。本机最终运行约 198ms（含 120ms 防抖），仅为测试环境测量。
+- 测试页面离线运行，无自动远程请求或页面脚本错误。没有执行临时 Obsidian QA 构建；使用正式构建的实际导出验证端到端流程，不将其记为所有原生样式逐项比对通过。
+- 开发库原始 Canvas 的 SHA-256 前后相同：`CFC660BEA83A2CD3C12B481B4469E7CC41338F94189AD3EF6C4F057C7E457306`。开发库保留已启用的正式 0.3.0 构建。
+
+复现独立回归（无需运行 Obsidian）：
+
+```sh
+pnpm check
+pnpm test:search
+pnpm test:reader
+```
+
+两项浏览器脚本均可追加实际导出文件路径；`test:search` 的实际产物断言针对固定 `example-canvas.canvas` 样例。测试 HTML、截图和 JSON 结果保存在 `qa/search/`、`qa/reader/`，不提交 Git。当前完整验证命令：
+
+```sh
+pnpm test:search "D:/Notes/Develop/example-canvas (5).html"
+pnpm test:reader "D:/Notes/Develop/example-canvas (5).html"
+```
+
 ## v0.2.0：导出 HTML 搜索
 
 日期：2026-09-17。Windows、Obsidian 1.13.7、Prism 3.8.0、Style Settings 1.0.9、SimpleBadge 0.6.0；浏览器为本机 Edge。

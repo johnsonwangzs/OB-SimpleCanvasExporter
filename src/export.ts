@@ -46,7 +46,7 @@ export async function exportCanvas(app:App,snap:Snapshot,s:Strings,signal:AbortS
     const html=`<!doctype html>
 <html lang="${s.export==='导出'?'zh-CN':'en'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src data:; base-uri 'none'; form-action 'none'">
-<meta name="generator" content="Simple Canvas Exporter 0.2.0"><title>${esc(title)}</title>
+<meta name="generator" content="Simple Canvas Exporter 0.3.0"><title>${esc(title)}</title>
 <style>${viewerCSS}\n${bank.css()}</style></head><body class="${bodyClass}">
 ${viewerToolbar(s,title,cards.length,records.length)}
 <main class="sce-viewport" tabindex="0" aria-label="${esc(title)}"><div class="sce-scene" data-width="${width}" data-height="${height}" data-origin-x="${dx}" data-origin-y="${dy}" style="width:${width}px;height:${height}px">

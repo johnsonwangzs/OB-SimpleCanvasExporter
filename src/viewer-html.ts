@@ -12,5 +12,8 @@ export function viewerToolbar(s:Strings,title:string,cards:number,connections:nu
 <div class="sce-search-input"><input type="search" aria-label="${esc(s.search)}" placeholder="${esc(s.search)}" autocomplete="off" spellcheck="false" aria-describedby="sce-search-help"><button type="button" data-search-action="clear">${esc(s.searchClear)}</button></div>
 <div class="sce-search-actions">${searchButtons}<label class="sce-dim-label"><input type="checkbox" class="sce-search-dim-toggle" checked>${esc(s.searchDim)}</label></div>
 <output class="sce-search-status" aria-live="polite" aria-atomic="true">${esc(s.searchIdle)}</output><span class="sce-search-fallback" hidden>${esc(s.searchFallback)}</span><span id="sce-search-help" class="sce-sr-only">${esc(s.searchHelp)}</span>
-</search></header>`;
+</search></header>
+<aside id="sce-reader" class="sce-reader" hidden aria-labelledby="sce-reader-title" data-open-label="${esc(s.readerOpen)}" data-current-label="${esc(s.readerCurrent)}" data-changed-label="${esc(s.readerChanged)}">
+<header class="sce-reader-header"><span id="sce-reader-title">${esc(s.readerTitle)}</span><div class="sce-reader-font-controls"><button type="button" data-reader-font="-2" aria-label="${esc(s.readerSmaller)}">A−</button><output class="sce-reader-font" aria-live="polite">16px</output><button type="button" data-reader-font="2" aria-label="${esc(s.readerLarger)}">A+</button></div><button type="button" class="sce-reader-close" aria-label="${esc(s.readerClose)}">×</button></header>
+<div class="sce-reader-body" tabindex="0" role="region" aria-label="${esc(s.readerTitle)}"></div><span class="sce-reader-status sce-sr-only" aria-live="polite"></span></aside>`;
 }

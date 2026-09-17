@@ -35,7 +35,21 @@ Queries are literal phrases, not regular expressions; English matching is case-i
 
 `Ctrl/Cmd+F` continues to use browser find. Queries remain in page memory and are cleared on reload; printing removes search decoration. Browsers without CSS Custom Highlight support retain card highlighting, counts, and navigation, with an explanatory message. Older HTML files must be exported again to gain search.
 
-## Supported features in v0.2.0
+## Read cards in a panel
+
+New exports made with 0.3.0 include a **Read** button at the top right of each nonempty text card. Hover or focus the card to reveal it; touch devices show the button directly. It opens a single panel on the right, or fills the area below the toolbar on narrow screens. Opening another card replaces the panel content.
+
+The panel shows the complete exported text, reflows it to the available width, and scrolls independently of the Canvas. Use **A− / A+** to adjust the reading font from 14 to 22px (16px by default). Heading, badge, and code proportions and theme colors are retained. Font changes apply only to the panel and last until the page is reloaded.
+
+- Search highlights also appear in the panel; counts still include only original cards. Typing or clearing a query does not change the reading card or scroll position.
+- **Previous card / Next card** also switches the panel when it is open. **Show all results** changes only the Canvas view. Search navigation does not open a closed panel.
+- The source card shows **Reading**, separately from the current search result. Manually reading a card does not change the current search result.
+- Close with **×** or `Escape` in the panel. Its own scrolling and font changes leave the original card's scroll position intact. Opening or closing retains Canvas zoom and center; explicit search navigation keeps its usual positioning behavior.
+- Reopening starts at the top or first search match. No reading history, view back/forward, or editing is included. Printing excludes the panel and its controls.
+
+Old HTML files must be exported again to gain the reader. It requires no network access or running Obsidian instance.
+
+## Supported features in v0.3.0
 
 | Content | Export behavior |
 | --- | --- |
@@ -86,6 +100,7 @@ Install Node.js **22.16 or later** and pnpm, then run the following commands fro
 pnpm install --frozen-lockfile
 pnpm check
 pnpm test:search
+pnpm test:reader
 ```
 
 To deploy the built plugin to a development vault:

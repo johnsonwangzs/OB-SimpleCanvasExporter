@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0
+
+- Add a reader panel to exported HTML, opened from nonempty text cards. Keep the Canvas available alongside it on desktop and use a full-width reading area below the toolbar on narrow screens.
+- Reflow complete card contents with independent scrolling and adjustable 14–22px text. Adapt frozen theme typography while retaining heading, badge, and code proportions; keep wide code and tables within local scroll containers.
+- Highlight search terms in the panel without counting the duplicate text. Existing search-result navigation switches an open panel; editing the query preserves the current reading card and position.
+- Preserve source card content and scrolling during reader operations, keep Canvas zoom and center when the panel opens or closes, and distinguish the reading source from the current search result.
+- Support keyboard focus, Escape, touch controls, independent folded content, and printing without duplicated text. Keep one reader copy in memory and remap its element references.
+- Add standalone browser regression coverage for reader/search interaction, actual frozen Obsidian/Prism content, responsive layouts, accessibility controls, and offline/static fallbacks.
+
 ## 0.2.0
 
 - Add offline search to exported HTML: highlight every matching text card and matching text, with an optional dimming mode for other cards and their connections.

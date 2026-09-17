@@ -8,6 +8,7 @@ export const EN={
   searchResults:'{cards} matching cards · {hits} occurrences',searchPosition:'Current {index}/{cards}',searchCurrent:'Current',
   searchEmpty:'No matching text cards.',searchIdle:'Search the full text of cards.',searchWorking:'Searching…',searchFailed:'Search could not be completed. Clear the query and try again.',
   searchFallback:'This browser supports card highlighting only.',searchHelp:'Enter: next card. Shift+Enter: previous card. Escape: clear. Browser find remains available with Ctrl or Cmd+F.',
+  readerOpen:'Read',readerTitle:'Card reader',readerClose:'Close reader',readerSmaller:'Decrease reading font size',readerLarger:'Increase reading font size',readerCurrent:'Reading',readerChanged:'Reading another card.',
   networkHint:'The HTML works offline. During export, Obsidian and enabled plugins may load remote resources referenced by cards.',
 };
 export type Strings=typeof EN;
@@ -20,6 +21,7 @@ export const ZH:Strings={
   searchResults:'命中 {cards} 张 · {hits} 处',searchPosition:'当前 {index}/{cards} 张',searchCurrent:'当前',
   searchEmpty:'未找到匹配的文本卡片。',searchIdle:'搜索卡片的完整正文。',searchWorking:'正在搜索…',searchFailed:'搜索未能完成，请清除关键词后重试。',
   searchFallback:'当前浏览器仅支持卡片高亮。',searchHelp:'Enter：下一张。Shift+Enter：上一张。Escape：清除。Ctrl 或 Cmd+F 仍使用浏览器查找。',
+  readerOpen:'阅读',readerTitle:'卡片阅读',readerClose:'关闭阅读面板',readerSmaller:'减小阅读字号',readerLarger:'增大阅读字号',readerCurrent:'阅读中',readerChanged:'已切换阅读卡片。',
   networkHint:'HTML 可离线使用。导出期间，Obsidian 和已启用的插件可能加载卡片引用的远程资源。',
 };
 export function strings():Strings {return getLanguage().startsWith('zh')?ZH:EN;}

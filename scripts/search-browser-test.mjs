@@ -10,6 +10,7 @@ await build({stdin:{contents:`export {startViewer} from './src/viewer'; export {
   outfile:'qa/search/runtime.mjs',bundle:true,format:'esm',target:'es2022',minifySyntax:true,
   plugins:[{name:'language-only',setup(b){b.onResolve({filter:/^obsidian$/},()=>({path:'obsidian',namespace:'test'}));b.onLoad({filter:/.*/,namespace:'test'},()=>({contents:'export const getLanguage = () => "en";'}));}}]});
 const {startViewer,viewerToolbar,viewerCSS,EN,ZH}=await import(pathToFileURL(resolve('qa/search/runtime.mjs')).href);
+const manifest=JSON.parse(await readFile('manifest.json','utf8'));
 const fixtures=[
   {id:'long',x:500,y:40,html:`${'<p>Long card context.</p>'.repeat(65)}<p>bottom needle</p>`},
   {id:'front',x:40,y:40,html:'<p>needle alpha <strong>beta</strong> needle</p><span class="badge">logits-based</span><p><a href="https://example.invalid/hidden-target">显示别名</a></p>'},
@@ -151,7 +152,7 @@ try {
   }
   if(process.argv[2]){
     await open(page,process.argv[2]);
-    assert.equal(await page.locator('meta[name=generator]').getAttribute('content'),'Simple Canvas Exporter 0.2.0');
+    assert.equal(await page.locator('meta[name=generator]').getAttribute('content'),`Simple Canvas Exporter ${manifest.version}`);
     const geometry=await layout(),position=await state(page);
     await page.locator('input[type=search]').fill('logits');await page.waitForFunction(()=>document.querySelector('.sce-search').getAttribute('aria-busy')==='false');
     assert.equal(await page.locator('.sce-search-match').count(),6);assert.equal(await page.evaluate(()=>CSS.highlights.get('sce-search').size),8);
