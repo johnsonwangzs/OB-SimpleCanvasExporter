@@ -1,5 +1,28 @@
 # 验收记录
 
+## v0.4.0：Badge 筛选与可选依赖兼容
+
+日期：2026-09-17。Windows、Obsidian 1.13.7、Prism 3.8.0、Style Settings 1.0.9；SimpleBadge 0.6.0 分别启用和关闭，浏览器使用本机 Edge。
+
+- `pnpm release` 通过官方 ESLint、16 项单元测试、TypeScript 正式构建及 0.4.0 版本检查，准备独立安装文件。
+- 新增 `pnpm test:badges`，使用生产 `ensureBadges`、`freezeTree`、`StyleBank` 配合导出器自身 CSS 验证未加载 SimpleBadge 的导出流程；验证主题色与自定义色身份、三位/六位 HEX 归一化、同名异色、实体与 Unicode、大小写、首尾空白、重复 span 按卡片去重、稳定排序与全局计数。
+- 排除代码、空 Badge、隐藏、ARIA 隐藏、透明、占位和非文本节点。包含折叠段落中的 Badge，点击筛选不展开；主动导航展开所需嵌套 details 并在原卡片及阅读副本定位，结果序号不被 toggle 事件清空。
+- 验证任一/全部、关键词交集与命中次数、独立清除条件、零结果恢复亮度、几何与正文滚动不变。阅读副本不进入目录，排除阅读卡片时正文和滚动位置保留，面板关键词继续高亮。
+- 70 类 Badge 测试覆盖 1440、736、320px，主栏最多两行，隐藏选择仍显示数量；完整目录名称搜索、Esc、键盘选择、44px 触屏按钮、深浅色、打印、缺少 Highlight API 和禁用 JavaScript 的静态降级均通过。浏览器离线，无自动远程请求或脚本异常。
+- 实际关闭 SimpleBadge 后导出 `example-canvas (6).html`，确认启用列表中不含该插件，导出器使用内置兼容样式。随后恢复 SimpleBadge、重载最终正式构建，导出 `example-canvas (7).html`，无导出警告。两份实际 HTML 均通过 Badge 回归：5 类目录；`logits` + 绿色 `logits-based` 为 5 张/7 处；`sampling-based` 与 `distortion-free` 的任一为 3 张、全部为 1 张。
+- 无 Badge 样例隐藏所有筛选入口，文字搜索、结果导航照常可用。不读取 SimpleBadge 配置，不更改其代码。
+- 最终实际 `(7)` 文件通过原有搜索与阅读面板回归：25 张卡片、24 条原生连线、16 个 Badge；单独搜索 `logits` 为 6 张/8 处。500 卡片搜索本机测量为 238ms（含防抖，不代表通用性能保证）。未重新运行历史 Obsidian 原生样式逐项测量的 QA 构建。
+- 开发库已启用正式 0.4.0 与 SimpleBadge；原始 Canvas SHA-256 保持 `CFC660BEA83A2CD3C12B481B4469E7CC41338F94189AD3EF6C4F057C7E457306`。
+
+```sh
+pnpm release
+pnpm test:search "D:/Notes/Develop/example-canvas (7).html"
+pnpm test:reader "D:/Notes/Develop/example-canvas (7).html"
+pnpm test:badges "D:/Notes/Develop/example-canvas (6).html" "D:/Notes/Develop/example-canvas (7).html"
+```
+
+省略路径可独立运行合成样例；追加的实际文件断言针对固定 example-canvas。Badge 测试产物保存在 `qa/badges/`，不提交 Git。
+
 ## v0.3.0：导出 HTML 阅读面板
 
 日期：2026-09-17。Windows、Obsidian 1.13.7、Prism 3.8.0、Style Settings 1.0.9、SimpleBadge 0.6.0；独立浏览器测试使用本机 Edge。

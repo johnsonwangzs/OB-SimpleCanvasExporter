@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Add Badge filters below search in exported HTML, with original colors, distinct-card counts, multi-select Any/All matching, and a searchable full catalog. Limit the inline catalog to two rows and retain a visible selection count.
+- Combine keyword and Badge conditions, highlight only final results, and navigate badge-only results including badges inside folded details. Keep keyword clearing and Badge resetting independent.
+- Preserve the open reader and its position when filters change; indicate excluded reading cards without counting the reader copy. Result navigation also reveals the matching Badge in the reader.
+- Keep SimpleBadge optional: no badges means no additional controls; existing standard spans still export and filter without the plugin. Preserve validated theme/custom color identities during static export, including normalized HEX values and same-name badges in different colors.
+- Cover standalone export fallback, hidden/code exclusions, stable counts, folded navigation, responsive/touch catalogs, keyboard controls, print, offline viewing, and search/reader regressions with browser tests.
+
 ## 0.3.0
 
 - Add a reader panel to exported HTML, opened from nonempty text cards. Keep the Canvas available alongside it on desktop and use a full-width reading area below the toolbar on narrow screens.

@@ -27,7 +27,7 @@ HTML 初始适应全图。点击 **100%** 查看原始 CSS 像素大小；拖动
 - 输入时保持当前画布和正文滚动位置。
 - “上一张 / 下一张”按从上到下、从左到右的顺序定位卡片，并显示首个命中词；搜索框内也可用 `Enter / Shift+Enter`。
 - “查看全部结果”适应所有命中卡片；原有“适应全图”仍展示整张 Canvas。
-- 点击“清除”或在搜索控件内按 `Escape` 恢复原始外观，保持当前阅读位置。
+- 点击“清除”或在搜索控件内按 `Escape` 清除关键词，保持当前阅读位置；若已选 Badge，则保留 Badge 筛选。
 
 `Ctrl/Cmd+F` 仍使用浏览器原生查找。搜索内容只保存在当前页面内存中，刷新后清空；打印不保留搜索装饰。旧浏览器缺少文字范围高亮能力时，会提示仅支持卡片高亮，仍可搜索和定位。已经生成的旧 HTML 需要重新导出才能获得搜索功能。
 
@@ -45,7 +45,20 @@ HTML 初始适应全图。点击 **100%** 查看原始 CSS 像素大小；拖动
 
 旧 HTML 需要重新导出才能获得阅读面板；独立浏览时无需网络或运行 Obsidian。
 
-## v0.3.0 支持范围
+## 按 Badge 筛选
+
+0.4.0 在搜索框下方列出当前 Canvas 文本卡片中实际出现的 Badge。点击选择或取消，数字表示包含该 Badge 的卡片总数；同一卡片重复出现只计一次。目录按覆盖卡片数排序，选择和搜索不会改变排序或数字。
+
+- 多选默认匹配“任一”，也可切换为“全部”，查找同一卡片中同时具备的标记。
+- Badge 可以单独筛选，也可与关键词组合；结果须同时满足两类条件。普通文字中的同名词不会被当作 Badge。
+- 主栏最多两行；点击“全部 N 种”可查找和选择完整目录中的 Badge。其搜索框只查找 Badge 名称；弹层内 `Escape` 只关闭弹层。
+- “清除”只清关键词；“重置 Badge”只清 Badge 条件并恢复“任一”。零结果时恢复全图亮度。
+- 上一张、下一张和查看全部结果均使用最终筛选结果。仅选 Badge 时，主动导航会定位 Badge，必要时展开其所在的折叠段落；切换条件不会自动展开、移动画布或切换阅读内容。
+- 阅读中的卡片被排除时，面板保留正文与位置并显示提示。阅读副本不计入结果或 Badge 数量。
+
+**SimpleBadge 是可选的。** 没有 Badge 时，筛选区自动隐藏，搜索和阅读照常使用；没有安装 SimpleBadge、但正文已有标准 `span.badge` 时，导出器使用内置兼容样式，仍能识别和筛选。主题色、自定义 HEX 色、同名异色均分别保留；空白 Badge、代码示例、显式隐藏和占位内容不参与目录。已有的旧 HTML 需要重新导出才能使用此功能。
+
+## v0.4.0 支持范围
 
 | 内容 | 行为 |
 | --- | --- |
@@ -74,7 +87,7 @@ HTML 初始适应全图。点击 **100%** 查看原始 CSS 像素大小；拖动
 
 手动安装时，将 `main.js`、`manifest.json`、`styles.css` 放到 `.obsidian/plugins/simple-canvas-exporter/`，然后在 Obsidian 社区插件设置中启用 **Simple Canvas Exporter**。使用自定义配置目录时，请相应替换 `.obsidian`。本项目生成的 ZIP 包内含插件目录。
 
-要求桌面版 Obsidian **1.13.7 或更新版本**；实际验收环境为 Windows、Obsidian 1.13.7、SimpleBadge 0.5.0 与 Microsoft Edge。0.1.1 修复了 Prism **3.8.0** 配合 Style Settings **1.0.9** 时的连线消失问题，已通过 Obsidian 原生样式与导出 HTML/CSS 核验。其他桌面平台、后续版本和其他第三方主题仍需实测。版本说明见英文[更新日志](CHANGELOG.md)。
+要求桌面版 Obsidian **1.13.7 或更新版本**；实际验收环境为 Windows、Obsidian 1.13.7、SimpleBadge 0.6.0 与 Microsoft Edge；0.4.0 也验证了关闭 SimpleBadge 的导出及无 Badge 文档。0.1.1 修复了 Prism **3.8.0** 配合 Style Settings **1.0.9** 时的连线消失问题，已通过 Obsidian 原生样式与导出 HTML/CSS 核验。其他桌面平台、后续版本和其他第三方主题仍需实测。版本说明见英文[更新日志](CHANGELOG.md)。
 
 ## 开发
 
@@ -85,6 +98,7 @@ pnpm install --frozen-lockfile
 pnpm check
 pnpm test:search
 pnpm test:reader
+pnpm test:badges
 pnpm deploy:dev "/path/to/development-vault"
 ```
 

@@ -9,6 +9,7 @@ export const EN={
   searchEmpty:'No matching text cards.',searchIdle:'Search the full text of cards.',searchWorking:'Searching…',searchFailed:'Search could not be completed. Clear the query and try again.',
   searchFallback:'This browser supports card highlighting only.',searchHelp:'Enter: next card. Shift+Enter: previous card. Escape: clear. Browser find remains available with Ctrl or Cmd+F.',
   readerOpen:'Read',readerTitle:'Card reader',readerClose:'Close reader',readerSmaller:'Decrease reading font size',readerLarger:'Increase reading font size',readerCurrent:'Reading',readerChanged:'Reading another card.',
+  badgeTitle:'Badges',badgeAll:'All {count} badges',badgeSelected:'{count} selected',badgeReset:'Reset badges',badgeMode:'Match badges',badgeAny:'Any',badgeEvery:'All',badgeFind:'Find a badge…',badgeEmpty:'No badges with this name.',badgeHelp:'Numbers show the total cards containing each badge in this document.',badgeCards:'{cards} cards',badgeResults:'{cards} matching cards',badgeCombined:'{cards} matching cards · {hits} keyword occurrences',badgeNoResults:'No cards match the selected conditions.',badgeColors:'Red,Orange,Yellow,Green,Cyan,Blue,Purple,Pink',badgeRendered:'Rendered color',readerExcluded:'Outside the current filter results',
   networkHint:'The HTML works offline. During export, Obsidian and enabled plugins may load remote resources referenced by cards.',
 };
 export type Strings=typeof EN;
@@ -22,6 +23,7 @@ export const ZH:Strings={
   searchEmpty:'未找到匹配的文本卡片。',searchIdle:'搜索卡片的完整正文。',searchWorking:'正在搜索…',searchFailed:'搜索未能完成，请清除关键词后重试。',
   searchFallback:'当前浏览器仅支持卡片高亮。',searchHelp:'Enter：下一张。Shift+Enter：上一张。Escape：清除。Ctrl 或 Cmd+F 仍使用浏览器查找。',
   readerOpen:'阅读',readerTitle:'卡片阅读',readerClose:'关闭阅读面板',readerSmaller:'减小阅读字号',readerLarger:'增大阅读字号',readerCurrent:'阅读中',readerChanged:'已切换阅读卡片。',
+  badgeTitle:'Badge',badgeAll:'全部 {count} 种',badgeSelected:'已选 {count} 种',badgeReset:'重置 Badge',badgeMode:'Badge 匹配方式',badgeAny:'任一',badgeEvery:'全部',badgeFind:'查找 Badge 名称…',badgeEmpty:'没有这个名称的 Badge。',badgeHelp:'数字表示本文档内包含该 Badge 的卡片总数。',badgeCards:'{cards} 张卡片',badgeResults:'符合条件 {cards} 张',badgeCombined:'符合条件 {cards} 张 · 关键词 {hits} 处',badgeNoResults:'没有符合当前筛选条件的卡片。',badgeColors:'红色,橙色,黄色,绿色,青色,蓝色,紫色,粉色',badgeRendered:'显示颜色',readerExcluded:'不在当前筛选结果中',
   networkHint:'HTML 可离线使用。导出期间，Obsidian 和已启用的插件可能加载卡片引用的远程资源。',
 };
 export function strings():Strings {return getLanguage().startsWith('zh')?ZH:EN;}

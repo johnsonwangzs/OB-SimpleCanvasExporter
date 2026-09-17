@@ -36,7 +36,7 @@ const watch=page=>{page.on('pageerror',e=>errors.push(String(e)));page.on('reque
 const open=async(page,file='qa/search/fixture.html')=>{await page.goto(pathToFileURL(resolve(file)).href);await page.locator('.sce-interactive').waitFor();};
 const state=page=>page.evaluate(()=>({zoom:document.querySelector('.sce-scene').dataset.zoom,x:document.querySelector('.sce-scene').dataset.panX,y:document.querySelector('.sce-scene').dataset.panY,scrolls:Array.from(document.querySelectorAll('.sce-card-scroll')).map(e=>[e.scrollTop,e.scrollLeft])}));
 async function searchFor(page,value,cards,hits){
-  await page.locator('input[type=search]').fill(value);
+  await page.locator('.sce-search-input input[type=search]').fill(value);
   await page.waitForFunction(()=>document.querySelector('.sce-search').getAttribute('aria-busy')==='false');
   assert.equal(await page.locator('.sce-search-match').count(),cards,`Card count for ${value}`);
   if(hits!==undefined)assert.equal(await page.evaluate(()=>CSS.highlights.get('sce-search')?.size??0),hits,`Occurrence count for ${value}`);
@@ -54,13 +54,13 @@ try {
   assert.deepEqual(edgeOpacity,{both:.8,one:.48,none:.16});
   assert.equal(await page.locator('[data-edge-label=one]').evaluate(e=>getComputedStyle(e).opacity),'0.6');
   await page.screenshot({path:'qa/search/results-light.png'});
-  await page.locator('input[type=search]').press('Enter');
+  await page.locator('.sce-search-input input[type=search]').press('Enter');
   assert.equal(await page.locator('[aria-current=true]').getAttribute('data-node-id'),'front','Navigation follows geometry, not source order');
-  await page.locator('input[type=search]').press('Enter');
+  await page.locator('.sce-search-input input[type=search]').press('Enter');
   assert.equal(await page.locator('[aria-current=true]').getAttribute('data-node-id'),'long');
   assert.ok(await page.locator('[data-node-id=long] .sce-card-scroll').evaluate(e=>e.scrollTop>100));
   assert.ok(await page.locator('[data-node-id=long] p:last-child').evaluate(e=>{const r=e.getBoundingClientRect(),p=e.closest('.sce-card-scroll').getBoundingClientRect();return r.top>=p.top&&r.bottom<=p.bottom;}),'Bottom hit revealed inside card');
-  assert.equal(await page.locator('input[type=search]').evaluate(e=>document.activeElement===e),true);
+  assert.equal(await page.locator('.sce-search-input input[type=search]').evaluate(e=>document.activeElement===e),true);
   await page.locator('[data-search-action=next]').click();
   assert.equal(await page.locator('[aria-current=true]').getAttribute('data-node-id'),'wide');
   assert.ok(await page.locator('[data-node-id=wide] pre').evaluate(e=>e.scrollLeft>100),'Nested code scroll follows hit');
@@ -72,7 +72,7 @@ try {
   await page.locator('[data-search-action=all]').click();
   assert.ok(await page.locator('.sce-search-match').evaluateAll(cards=>cards.every(e=>{const r=e.getBoundingClientRect(),p=document.querySelector('.sce-viewport').getBoundingClientRect();return r.left>=p.left&&r.right<=p.right&&r.top>=p.top&&r.bottom<=p.bottom;})));
   const settled=await state(page);
-  await page.locator('input[type=search]').press('Escape');
+  await page.locator('.sce-search-input input[type=search]').press('Escape');
   assert.equal(await page.locator('.sce-search-match,.sce-search-ring,.sce-search-dim').count(),0);
   assert.deepEqual(await state(page),settled,'Clear preserves reading position');
   await searchFor(page,'ALPHA BETA',2,2);
@@ -80,20 +80,20 @@ try {
   for(const [q,n] of [['logits',1],['显示别名',1],['hidden-target',0],['hiddenneedle',0],['invisibleneedle',0],['excludedneedle',0],['excluded-file',0],['foldedneedle',0],['中文搜索',1],['foo bar',1],['[x]+.*',1],['🐈',1],['İ X',1]])await searchFor(page,q,n,n);
   const foldedRange=await page.evaluate(()=>{const h=CSS.highlights.get('sce-search');return Array.from(h)[0].toString();});
   assert.equal(foldedRange,'İ X','Case expansion offsets point to original text');
-  await page.locator('input[type=search]').fill('');
+  await page.locator('.sce-search-input input[type=search]').fill('');
   await page.locator('[data-node-id=details] details').evaluate(e=>{e.open=true;});
   await searchFor(page,'foldedneedle',1,1);
   await page.locator('[data-node-id=details] details').evaluate(e=>{e.open=false;});
   await page.waitForFunction(()=>document.querySelectorAll('.sce-search-match').length===0);
   await searchFor(page,'needle',3,4);
   const imeState=await state(page);
-  await page.locator('input[type=search]').evaluate(e=>{e.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));e.value='中文';e.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true}));e.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',isComposing:true,bubbles:true}));});
+  await page.locator('.sce-search-input input[type=search]').evaluate(e=>{e.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));e.value='中文';e.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true}));e.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',isComposing:true,bubbles:true}));});
   assert.deepEqual(await state(page),imeState,'IME confirmation does not navigate');
   assert.equal(await page.locator('.sce-search-match').count(),3,'No partial composition search');
-  await page.locator('input[type=search]').evaluate(e=>e.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true})));
+  await page.locator('.sce-search-input input[type=search]').evaluate(e=>e.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true})));
   await page.waitForFunction(()=>document.querySelector('.sce-search-status').textContent.includes('命中 1 张'));
-  await page.locator('input[type=search]').fill('needle');
-  await page.locator('input[type=search]').fill('no-results');
+  await page.locator('.sce-search-input input[type=search]').fill('needle');
+  await page.locator('.sce-search-input input[type=search]').fill('no-results');
   await page.waitForFunction(()=>document.querySelector('.sce-search-status').textContent.includes('未找到'));
   assert.equal(await page.locator('.sce-search-dim').count(),0);
   await searchFor(page,'needle',3,4);
@@ -102,7 +102,7 @@ try {
   assert.equal(await page.locator('[data-edge-id=none]').evaluate(e=>getComputedStyle(e).opacity),'0.8');
   assert.equal(await page.locator('[data-node-id=blocks]').evaluate(e=>getComputedStyle(e).opacity),'1');
   await page.emulateMedia({media:'screen'});
-  await page.locator('input[type=search]').press('Escape');
+  await page.locator('.sce-search-input input[type=search]').press('Escape');
   await page.locator('[data-action=reset]').click();
   const dragStart=await page.locator('.sce-viewport').evaluate(e=>({x:20,y:e.getBoundingClientRect().top+15}));
   assert.equal(await page.evaluate(p=>!!document.elementFromPoint(p.x,p.y)?.closest('.sce-card'),dragStart),false);
@@ -113,7 +113,7 @@ try {
   await page.waitForFunction(scale=>Number(document.querySelector('.sce-scene').dataset.zoom)>Number(scale),panAfter.zoom);
   await page.locator('[data-node-id=front] p').first().evaluate(e=>{const range=document.createRange();range.selectNodeContents(e);const selection=getSelection();selection.removeAllRanges();selection.addRange(range);});
   const selected=await page.evaluate(()=>getSelection().toString());
-  await page.locator('input[type=search]').evaluate(e=>{e.value='needle';e.dispatchEvent(new InputEvent('input',{bubbles:true}));});
+  await page.locator('.sce-search-input input[type=search]').evaluate(e=>{e.value='needle';e.dispatchEvent(new InputEvent('input',{bubbles:true}));});
   await page.waitForFunction(()=>document.querySelector('.sce-search').getAttribute('aria-busy')==='false');
   assert.equal(await page.evaluate(()=>getSelection().toString()),selected,'Highlighting preserves text selection');
   summary.interactions=true;
@@ -129,7 +129,7 @@ try {
   const fallback=await browser.newContext({offline:true});await fallback.addInitScript(()=>{Object.defineProperty(window,'Highlight',{value:undefined});});
   const fallbackPage=await fallback.newPage();watch(fallbackPage);await open(fallbackPage);await searchFor(fallbackPage,'needle',3);
   assert.ok(await fallbackPage.locator('.sce-search-fallback').isVisible());
-  await fallbackPage.locator('input[type=search]').press('Enter');assert.equal(await fallbackPage.locator('[aria-current=true]').getAttribute('data-node-id'),'front');
+  await fallbackPage.locator('.sce-search-input input[type=search]').press('Enter');assert.equal(await fallbackPage.locator('[aria-current=true]').getAttribute('data-node-id'),'front');
   await fallback.close();summary.noHighlightFallback=true;
   const staticContext=await browser.newContext({javaScriptEnabled:false,offline:true});const staticPage=await staticContext.newPage();watch(staticPage);
   await staticPage.goto(pathToFileURL(resolve('qa/search/fixture.html')).href);
@@ -145,7 +145,7 @@ try {
       .replace(/<style>[\s\S]*?(?=\.sce-s0\{)/,()=>`<style>${viewerCSS}\n`)
       .replace(/<script>[\s\S]*?<\/script>/,`<script>(${startViewer.toString()})(${JSON.stringify(ZH.searchCurrent)});</script>`);
     await writeFile('qa/search/captured.html',upgraded);await open(page,'qa/search/captured.html');
-    const nativeLayout=await layout();await page.locator('input[type=search]').fill('logits');await page.waitForFunction(()=>document.querySelector('.sce-search').getAttribute('aria-busy')==='false');
+    const nativeLayout=await layout();await page.locator('.sce-search-input input[type=search]').fill('logits');await page.waitForFunction(()=>document.querySelector('.sce-search').getAttribute('aria-busy')==='false');
     assert.ok(await page.locator('.sce-search-match').count()>1);assert.deepEqual(await layout(),nativeLayout);
     await page.screenshot({path:`qa/search/captured-${file.includes('prism')?'prism':'default'}.png`});
     summary[file]=true;
@@ -154,12 +154,12 @@ try {
     await open(page,process.argv[2]);
     assert.equal(await page.locator('meta[name=generator]').getAttribute('content'),`Simple Canvas Exporter ${manifest.version}`);
     const geometry=await layout(),position=await state(page);
-    await page.locator('input[type=search]').fill('logits');await page.waitForFunction(()=>document.querySelector('.sce-search').getAttribute('aria-busy')==='false');
+    await page.locator('.sce-search-input input[type=search]').fill('logits');await page.waitForFunction(()=>document.querySelector('.sce-search').getAttribute('aria-busy')==='false');
     assert.equal(await page.locator('.sce-search-match').count(),6);assert.equal(await page.evaluate(()=>CSS.highlights.get('sce-search').size),8);
     assert.deepEqual(await layout(),geometry);assert.deepEqual(await state(page),position);
     assert.ok(await page.locator('.sce-edges path').evaluateAll(paths=>paths.every(p=>getComputedStyle(p).stroke!=='none')));
     await page.screenshot({path:'qa/search/production-results.png'});
-    await page.locator('input[type=search]').press('Enter');await page.locator('input[type=search]').press('Enter');
+    await page.locator('.sce-search-input input[type=search]').press('Enter');await page.locator('.sce-search-input input[type=search]').press('Enter');
     assert.equal(await page.locator('[aria-current=true]').count(),1);
     await page.screenshot({path:'qa/search/production-reading.png'});
     summary.productionExport={cards:await page.locator('.sce-card').count(),nativeEdges:await page.locator('[data-path-source=native]').count(),badges:await page.locator('.badge').count(),matches:6,hits:8};
@@ -167,12 +167,12 @@ try {
   const large=Array.from({length:500},(_,i)=>({id:`load-${i}`,x:(i%20)*450+40,y:Math.floor(i/20)*240+40,html:`<p>${'context '.repeat(249)}benchmark</p>`}));
   await writeFile('qa/search/large.html',documentHTML(large,EN,false,{width:9100,height:6100}));
   await open(page,'qa/search/large.html');
-  const started=await page.evaluate(()=>{const e=document.querySelector('input[type=search]');e.value='benchmark';const now=performance.now();e.dispatchEvent(new InputEvent('input',{bubbles:true}));return now;});
+  const started=await page.evaluate(()=>{const e=document.querySelector('.sce-search-input input[type=search]');e.value='benchmark';const now=performance.now();e.dispatchEvent(new InputEvent('input',{bubbles:true}));return now;});
   await page.waitForFunction(()=>document.querySelector('.sce-search-status').textContent==='500 matching cards · 500 occurrences');
   summary.largeQueryMs=Math.round(await page.evaluate(()=>performance.now())-started);
   assert.equal(await page.locator('.sce-search-match').count(),500);
   // Clear while a common-word query is still in flight; an older result must not reappear.
-  await page.locator('input[type=search]').fill('context');
+  await page.locator('.sce-search-input input[type=search]').fill('context');
   await page.waitForFunction(()=>document.querySelector('.sce-search').getAttribute('aria-busy')==='true');
   await page.locator('[data-search-action=clear]').click();
   await page.waitForTimeout(250);

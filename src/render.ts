@@ -49,7 +49,7 @@ export class Renderer {
           const path=parseLinktext(link.getAttribute('data-href')??link.getAttribute('href')??'').path;
           link.classList.toggle('is-unresolved',!!path&&!this.app.metadataCache.getFirstLinkpathDest(path,this.snap.file.path));
         }
-        if(ensureBadges(sizer))this.warnings.add('SimpleBadge used its built-in fallback style.');
+        if(ensureBadges(sizer))this.warnings.add('Badges use the exporter’s built-in fallback style. SimpleBadge is optional.');
         await this.assets.inline(sizer,this.snap.file.path);
         await this.waitForContent(sizer);
       }

@@ -53,9 +53,6 @@ export function startViewer(currentLabel='Current'):void {
   const search=document.querySelector<HTMLElement>('.sce-search')!;
   search.hidden=false;
   const layoutToolbar=()=>{const top=`${toolbar.getBoundingClientRect().height}px`;viewport.style.top=top;if(reader)reader.style.top=top;};
-  layoutToolbar();new ResizeObserver(layoutToolbar).observe(toolbar);
-  viewport.classList.add('sce-interactive');fit();
-  new ResizeObserver(()=>{syncViewport();paint();}).observe(viewport);
 
   // Everything below is serialized with this function: no imported runtime helpers.
   interface Normalized {text:string;starts?:Uint32Array;ends?:Uint32Array}
@@ -73,8 +70,133 @@ export function startViewer(currentLabel='Current'):void {
   search.querySelector<HTMLElement>('.sce-search-fallback')!.hidden=!!registry;
   for(const el of [...allCards,...edges])el.style.setProperty('--sce-original-opacity',getComputedStyle(el).opacity);
   const rings=new Map<HTMLElement,HTMLElement>();
-  let results:Result[]=[],active=-1,total=0,revision=0,timer=0,composing=false,compositionEnding=false,busy=false,committedQuery='';
+  let results:Result[]=[],active=-1,total=0,revision=0,timer=0,composing=false,compositionEnding=false,busy=false,committedQuery='',committedBadges=0;
   const pause=()=>new Promise<void>(resolve=>window.setTimeout(resolve,0));
+
+  interface Badge {key:string;text:string;colorLabel:string;ink:string;background:string;cards:Set<HTMLElement>}
+  const badgeFilter=document.querySelector<HTMLElement>('.sce-badge-filter')!;
+  const badgePopup=document.querySelector<HTMLElement>('.sce-badge-popup')!;
+  const badgeChips=badgeFilter.querySelector<HTMLElement>('.sce-badge-chips')!;
+  const badgeMore=badgeFilter.querySelector<HTMLButtonElement>('.sce-badge-more')!;
+  const badgeReset=badgeFilter.querySelector<HTMLButtonElement>('.sce-badge-reset')!;
+  const badgeMode=badgeFilter.querySelector<HTMLSelectElement>('.sce-badge-mode')!;
+  const badgeFind=badgePopup.querySelector<HTMLInputElement>('.sce-badge-find')!;
+  const badgeList=badgePopup.querySelector<HTMLElement>('.sce-badge-list')!;
+  const selectedBadges=new Set<string>(),cardBadges=new Map<HTMLElement,Map<string,HTMLElement>>();
+  const badgeButtons=new Map<string,HTMLButtonElement[]>(),automaticDetails=new WeakSet<HTMLDetailsElement>();
+  const themeColors=['red','orange','yellow','green','cyan','blue','purple','pink'];
+
+  function badgeIdentity(el:HTMLElement):{key:string;text:string;colorLabel:string} {
+    const text=el.textContent?.trim()??'';
+    let kind=el.dataset.sceBadgeColorKind??'',color=el.dataset.sceBadgeColor??'';
+    if(!(kind==='theme'&&themeColors.includes(color))&&!(kind==='custom'&&/^#[a-f0-9]{6}$/.test(color))){
+      const theme=themeColors.find(c=>el.classList.contains(`badge-${c}`));
+      let custom=el.style.getPropertyValue('--simple-badge-color').trim().toLowerCase();
+      if(/^#[a-f0-9]{3}$/.test(custom))custom='#'+Array.from(custom.slice(1),c=>c+c).join('');
+      if(el.classList.contains('badge-custom')&&/^#[a-f0-9]{6}$/.test(custom)){kind='custom';color=custom;}
+      else if(theme&&!el.classList.contains('badge-custom')){kind='theme';color=theme;}
+      else {kind='rendered';color=getComputedStyle(el).color;}
+    }
+    const colorLabel=kind==='theme'?badgeFilter.dataset.colors!.split(',')[themeColors.indexOf(color)]:kind==='custom'?color:`${badgeFilter.dataset.rendered} ${color}`;
+    return {key:JSON.stringify([text,kind,color]),text,colorLabel};
+  }
+  function eligibleBadge(el:HTMLElement,root:HTMLElement):boolean {
+    if(!el.textContent?.trim())return false;
+    for(let parent:HTMLElement|null=el;parent;parent=parent.parentElement){
+      if(parent.matches('pre,code,script,style,[hidden],[aria-hidden="true"],.sce-placeholder,.sce-resource-placeholder'))return false;
+      const style=getComputedStyle(parent);
+      if(style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||Number(style.opacity)===0)return false;
+      if(parent===root)return true;
+    }
+    return false;
+  }
+  function closeBadgePopup(focus=false):void {
+    badgePopup.hidden=true;badgeMore.setAttribute('aria-expanded','false');
+    if(focus)badgeMore.focus({preventScroll:true});
+  }
+  function positionBadgePopup():void {
+    const top=Math.min(badgeFilter.getBoundingClientRect().bottom+4,Math.max(12,innerHeight-260));
+    badgePopup.style.top=`${top}px`;badgePopup.style.maxHeight=`${innerHeight-top-12}px`;
+  }
+  function updateBadgeControls():void {
+    for(const [key,controls] of badgeButtons)for(const control of controls)control.setAttribute('aria-pressed',String(selectedBadges.has(key)));
+    badgeFilter.querySelector<HTMLOutputElement>('.sce-badge-selected')!.textContent=format(badgeFilter.dataset.selected!,{count:selectedBadges.size});
+    badgeReset.disabled=!selectedBadges.size;
+    badgeMode.style.visibility=selectedBadges.size<2?'hidden':'visible';badgeMode.disabled=selectedBadges.size<2;
+  }
+  function compactBadgeChips():void {
+    // Measure the real wrapping width, including touch-sized controls. Never exceed two rows.
+    const chips=Array.from(badgeChips.children) as HTMLElement[];
+    for(const chip of chips)chip.hidden=false;
+    let row=-1,rows=0;
+    for(const chip of chips){if(chip.offsetTop!==row){row=chip.offsetTop;rows++;}chip.hidden=rows>2;}
+  }
+  function setupBadges():void {
+    const catalog=new Map<string,Badge>();
+    for(const card of allCards){
+      if(card.dataset.nodeType!=='text')continue;
+      const root=card.querySelector<HTMLElement>('.sce-card-scroll')!,found=new Map<string,HTMLElement>();
+      for(const el of root.querySelectorAll<HTMLElement>('span.badge')){
+        if(!eligibleBadge(el,root))continue;
+        const identity=badgeIdentity(el);if(found.has(identity.key))continue;
+        found.set(identity.key,el);
+        let badge=catalog.get(identity.key);
+        if(!badge){const style=getComputedStyle(el);badge={...identity,ink:style.color,background:style.backgroundColor,cards:new Set()};catalog.set(identity.key,badge);}
+        badge.cards.add(card);
+      }
+      cardBadges.set(card,found);
+    }
+    if(!catalog.size)return;
+    for(const [i,badge] of [...catalog.values()].sort((a,b)=>b.cards.size-a.cards.size).entries()){
+      const controls:HTMLButtonElement[]=[];
+      for(const container of [badgeChips,badgeList]){
+        const button=document.createElement('button');button.type='button';button.className='sce-badge-chip';button.dataset.badgeIndex=String(i);
+        button.style.setProperty('--sce-badge-ink',badge.ink);button.style.setProperty('--sce-badge-bg',badge.background);
+        button.title=`${badge.text} · ${badge.colorLabel} · ${format(badgeFilter.dataset.cards!,{cards:badge.cards.size})}`;
+        button.setAttribute('aria-label',button.title);
+        const check=document.createElement('span');check.className='sce-badge-check';check.textContent='✓';check.setAttribute('aria-hidden','true');
+        const label=document.createElement('span');label.className='sce-badge-name';label.textContent=badge.text;
+        const count=document.createElement('span');count.className='sce-badge-count';count.textContent=String(badge.cards.size);
+        button.append(check,label,count);container.appendChild(button);controls.push(button);
+        button.addEventListener('click',()=>{
+          if(selectedBadges.has(badge.key))selectedBadges.delete(badge.key);else selectedBadges.add(badge.key);
+          if(!selectedBadges.size)badgeMode.value='any';updateBadgeControls();schedule();
+        });
+      }
+      badgeButtons.set(badge.key,controls);
+    }
+    badgeFilter.hidden=false;badgeMore.textContent=format(badgeFilter.dataset.all!,{count:catalog.size});updateBadgeControls();compactBadgeChips();
+    let lastWidth=badgeChips.clientWidth;
+    new ResizeObserver(()=>{if(badgeChips.clientWidth!==lastWidth){lastWidth=badgeChips.clientWidth;compactBadgeChips();}}).observe(badgeChips);
+    badgeMode.addEventListener('change',schedule);
+    badgeReset.addEventListener('click',()=>{selectedBadges.clear();badgeMode.value='any';updateBadgeControls();schedule();});
+    badgeMore.addEventListener('click',()=>{
+      if(!badgePopup.hidden){closeBadgePopup();return;}
+      badgePopup.hidden=false;badgeMore.setAttribute('aria-expanded','true');positionBadgePopup();badgeFind.focus({preventScroll:true});
+    });
+    badgePopup.querySelector('.sce-badge-close')!.addEventListener('click',()=>closeBadgePopup(true));
+    badgeFind.addEventListener('input',()=>{
+      const term=badgeFind.value.trim().toLowerCase();let count=0;
+      for(const button of badgeList.querySelectorAll<HTMLButtonElement>('.sce-badge-chip')){button.hidden=!button.querySelector('.sce-badge-name')!.textContent.toLowerCase().includes(term);if(!button.hidden)count++;}
+      badgePopup.querySelector<HTMLElement>('.sce-badge-empty')!.hidden=count>0;
+    });
+    document.addEventListener('pointerdown',event=>{if(!badgePopup.hidden&&!badgePopup.contains(event.target as Node)&&!badgeMore.contains(event.target as Node))closeBadgePopup();});
+    document.addEventListener('keydown',event=>{
+      if(event.key==='Escape'&&!event.isComposing&&!badgePopup.hidden){event.preventDefault();event.stopPropagation();closeBadgePopup(true);}
+    },true);
+    document.addEventListener('focusin',event=>{if(!badgePopup.hidden&&!badgePopup.contains(event.target as Node)&&event.target!==badgeMore)closeBadgePopup();});
+    window.addEventListener('resize',()=>{if(!badgePopup.hidden)positionBadgePopup();});
+  }
+  function badgeRange(root:HTMLElement,source=false):Range|undefined {
+    const badge=Array.from(root.querySelectorAll<HTMLElement>('span.badge')).find(el=>eligibleBadge(el,root)&&selectedBadges.has(badgeIdentity(el).key));
+    if(!badge)return;
+    let opened=false;
+    for(let el:HTMLElement|null=badge.parentElement;el&&root.contains(el);el=el.parentElement){
+      if(el instanceof HTMLDetailsElement&&!el.open){if(source)automaticDetails.add(el);el.open=true;opened=true;}
+    }
+    if(opened&&source)index=buildIndex();
+    const range=document.createRange();range.selectNodeContents(badge);return range;
+  }
 
   function normalize(raw:string):Normalized {
     const lower=raw.toLowerCase(),text=lower.replace(/\s+/gu,' ');
@@ -143,11 +265,12 @@ export function startViewer(currentLabel='Current'):void {
     range.setStart(a.node,a.starts?.[ai]??ai);range.setEnd(b.node,b.ends?.[bi]??bi+1);return range;
   }
   function format(template:string,values:Record<string,number>):string {
-    return template.replace(/\{(cards|hits|index)\}/g,(_,key:string)=>String(values[key]));
+    return template.replace(/\{(cards|hits|index|count)\}/g,(_,key:string)=>String(values[key]));
   }
   function report():void {
-    status.textContent=!committedQuery?search.dataset.idle!:!results.length?search.dataset.empty!:
-      format(search.dataset.results!,{cards:results.length,hits:total})+(active>=0?` · ${format(search.dataset.current!,{index:active+1,cards:results.length})}`:'');
+    const template=committedBadges?(committedQuery?badgeFilter.dataset.combined!:badgeFilter.dataset.results!):search.dataset.results!;
+    status.textContent=!committedQuery&&!committedBadges?search.dataset.idle!:!results.length?(committedBadges?badgeFilter.dataset.empty!:search.dataset.empty!):
+      format(template,{cards:results.length,hits:total})+(active>=0?` · ${format(search.dataset.current!,{index:active+1,cards:results.length})}`:'');
   }
   function setBusy(value:boolean):void {
     busy=value;search.setAttribute('aria-busy',String(value));
@@ -156,6 +279,8 @@ export function startViewer(currentLabel='Current'):void {
   }
   function decorate():void {
     const matched=new Set(results.map(r=>r.card.el.dataset.nodeId)),fading=dim.checked&&results.length>0;
+    const excluded=reader?.querySelector<HTMLElement>('.sce-reader-excluded');
+    if(excluded)excluded.hidden=!reading||(!committedQuery&&!committedBadges)||matched.has(reading.dataset.nodeId);
     for(const el of allCards){
       el.classList.toggle('sce-search-match',matched.has(el.dataset.nodeId));
       el.classList.toggle('sce-search-dim',fading&&!matched.has(el.dataset.nodeId));
@@ -182,40 +307,42 @@ export function startViewer(currentLabel='Current'):void {
     }
   }
   function clear():void {
-    revision++;window.clearTimeout(timer);input.value='';committedQuery='';results=[];active=-1;total=0;
-    registry?.delete('sce-search');decorate();setBusy(false);report();
-    updateReaderHighlights();
+    input.value='';schedule();
   }
   async function runSearch(version:number):Promise<boolean> {
-    const term=query();
-    if(!term){clear();return false;}
+    const term=query(),selection=new Set(selectedBadges),every=badgeMode.value==='all';
     setBusy(true);
     try {
       const cards=await index;if(version!==revision)return false;
       const found:Result[]=[];let count=0,lastYield=performance.now();
       const highlight=registry?new Highlight():undefined;
       for(const card of cards){
+        const badges=cardBadges.get(card.el);
+        if(selection.size&&!(every?[...selection].every(key=>badges?.has(key)):[...selection].some(key=>badges?.has(key))))continue;
         const offsets:number[]=[];let from=0,at:number;
-        while((at=card.text.indexOf(term,from))!==-1){
+        while(term&&(at=card.text.indexOf(term,from))!==-1){
           offsets.push(at);count++;from=at+term.length;
           highlight?.add(rangeFor(card,at,from));
           if(count%100===0&&performance.now()-lastYield>8){await pause();if(version!==revision)return false;lastYield=performance.now();}
         }
-        if(offsets.length)found.push({card,offsets});
+        if(offsets.length||(!term&&selection.size))found.push({card,offsets});
         if(performance.now()-lastYield>8){await pause();if(version!==revision)return false;lastYield=performance.now();}
       }
       if(version!==revision)return false;
-      committedQuery=term;results=found;active=-1;total=count;
+      committedQuery=term;committedBadges=selection.size;results=found;active=-1;total=count;
       if(highlight)registry!.set('sce-search',highlight);
       decorate();setBusy(false);report();updateReaderHighlights();return true;
     } catch {
-      if(version===revision){registry?.delete('sce-search');results=[];active=-1;total=0;committedQuery='';decorate();setBusy(false);updateReaderHighlights();status.textContent=search.dataset.failed!;}
+      if(version===revision){registry?.delete('sce-search');results=[];active=-1;total=0;committedQuery='';committedBadges=0;decorate();setBusy(false);updateReaderHighlights();status.textContent=search.dataset.failed!;}
       return false;
     }
   }
   function schedule():void {
     window.clearTimeout(timer);const version=++revision;
-    if(!query()){clear();return;}
+    if(!query()&&!selectedBadges.size){
+      committedQuery='';committedBadges=0;results=[];active=-1;total=0;
+      registry?.delete('sce-search');decorate();setBusy(false);report();updateReaderHighlights();return;
+    }
     setBusy(true);timer=window.setTimeout(()=>{void runSearch(version);},120);
   }
   function reveal(scroll:HTMLElement,range:Range,factor=scale):void {
@@ -255,8 +382,9 @@ export function startViewer(currentLabel='Current'):void {
     const onScreen=x+card.left*scale>=24&&y+card.top*scale>=24&&x+(card.left+card.width)*scale<=viewport.clientWidth-24&&y+(card.top+card.height)*scale<=viewport.clientHeight-24;
     if(!onScreen){x=viewport.clientWidth/2-(card.left+card.width/2)*scale;y=viewport.clientHeight/2-(card.top+card.height/2)*scale;}
     paint();
-    const range=rangeFor(card,offsets[0],offsets[0]+committedQuery.length);reveal(card.scroll,range);
-    const rect=range.getClientRects()[0],vp=viewport.getBoundingClientRect();
+    const range=committedQuery?rangeFor(card,offsets[0],offsets[0]+committedQuery.length):badgeRange(card.scroll,true);
+    if(range)reveal(card.scroll,range);
+    const rect=range?.getClientRects()[0],vp=viewport.getBoundingClientRect();
     if(rect){
       if(rect.left<vp.left+24||rect.right>vp.right-24)x+=vp.left+Math.min(viewport.clientWidth/2,64)-rect.left;
       if(rect.top<vp.top+24||rect.bottom>vp.bottom-24)y+=vp.top+Math.min(viewport.clientHeight/2,64)-rect.top;
@@ -349,7 +477,8 @@ export function startViewer(currentLabel='Current'):void {
     }
     reader.hidden=false;document.body.classList.add('sce-reader-open');layoutReader();
     if(switched)readerText=readText(readerBody,true);
-    const first=updateReaderHighlights();
+    const first=searchNavigation&&!committedQuery?badgeRange(readerBody):updateReaderHighlights();
+    if(searchNavigation&&!committedQuery){readerText=readText(readerBody,true);updateReaderHighlights();}
     if(first)reveal(readerBody,first,1);
     decorate();
     reader.querySelector<HTMLElement>('.sce-reader-status')!.textContent=`${reader.dataset.changedLabel} ${card.querySelector('.sce-card-scroll')?.getAttribute('aria-label')??''}`;
@@ -421,8 +550,15 @@ export function startViewer(currentLabel='Current'):void {
   });
   dim.addEventListener('change',decorate);
   scene.addEventListener('toggle',event=>{
-    if(event.target instanceof HTMLDetailsElement){index=buildIndex();schedule();}
+    if(event.target instanceof HTMLDetailsElement){
+      if(automaticDetails.has(event.target)){automaticDetails.delete(event.target);return;}
+      index=buildIndex();schedule();
+    }
   },true);
+  setupBadges();
+  layoutToolbar();new ResizeObserver(layoutToolbar).observe(toolbar);
+  viewport.classList.add('sce-interactive');fit();
+  new ResizeObserver(()=>{syncViewport();paint();}).observe(viewport);
   // Observe rejected indexing even if the user never starts a search.
   void index.catch(()=>{status.textContent=search.dataset.failed!;});
 }

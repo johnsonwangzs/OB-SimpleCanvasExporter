@@ -31,7 +31,7 @@ Queries are literal phrases, not regular expressions; English matching is case-i
 - Typing leaves the viewport and card scroll positions unchanged.
 - **Previous card / Next card** follows the layout from top to bottom and left to right, and reveals the first occurrence. Use `Enter / Shift+Enter` in the search field for the same navigation.
 - **Show all results** fits matching cards into view. **Fit all** still shows the entire Canvas.
-- **Clear**, or `Escape` within the search controls, restores normal appearance and keeps the current reading position.
+- **Clear**, or `Escape` within the search controls, clears the keyword and keeps the current reading position. Selected Badge filters remain active.
 
 `Ctrl/Cmd+F` continues to use browser find. Queries remain in page memory and are cleared on reload; printing removes search decoration. Browsers without CSS Custom Highlight support retain card highlighting, counts, and navigation, with an explanatory message. Older HTML files must be exported again to gain search.
 
@@ -49,7 +49,20 @@ The panel shows the complete exported text, reflows it to the available width, a
 
 Old HTML files must be exported again to gain the reader. It requires no network access or running Obsidian instance.
 
-## Supported features in v0.3.0
+## Filter by badges
+
+Exports made with 0.4.0 list badges actually present in the Canvas's text cards below search. Click to select or deselect. Each number is the document-wide count of distinct cards containing that badge; repeated spans within one card count once. The catalog is sorted by coverage and remains stable during filtering.
+
+- Multiple selections match **Any** by default; choose **All** to require every selected badge in the same card.
+- Use badges alone or combine them with a keyword. Results must satisfy both conditions; plain text with the same label is not a badge match.
+- The inline catalog occupies at most two rows. **All N badges** opens a searchable full catalog. Its search field only finds badge names; `Escape` closes the popup.
+- **Clear** only clears the keyword. **Reset badges** only clears badge selections and resets the mode to Any. Zero results restore normal Canvas brightness.
+- Navigation and **Show all results** use the combined results. Badge-only navigation reveals the matching badge, opening folded details only when explicitly navigating. Changing filters preserves the view and open reading card.
+- An excluded reading card stays open with a notice. Reader copies never increase result or badge counts.
+
+**SimpleBadge is optional.** Documents without badges hide the extra controls and retain search and reading. Existing standard `span.badge` markup works even without SimpleBadge installed, using the exporter's built-in fallback styling. Theme colors and normalized custom HEX colors retain separate identities, including same-name badges in different colors. Empty badges, code examples, explicitly hidden content, and placeholders are excluded. Re-export older HTML files to gain these controls.
+
+## Supported features in v0.4.0
 
 | Content | Export behavior |
 | --- | --- |
@@ -90,7 +103,7 @@ For manual installation, place these three files in your vault's `.obsidian/plug
 
 Then enable **Simple Canvas Exporter** in Obsidian's community plugin settings. The plugin ZIP package includes the `simple-canvas-exporter` directory.
 
-Requires desktop Obsidian **1.13.7 or later**. The plugin has been tested on Windows with Obsidian **1.13.7**, SimpleBadge **0.5.0**, and Microsoft Edge. Version 0.1.1 fixes missing connection lines with Prism **3.8.0** and Style Settings **1.0.9**, verified against native Obsidian styles and the exported HTML/CSS. Other desktop platforms, later versions, and other third-party themes still require testing. See the [changelog](CHANGELOG.md) for release notes.
+Requires desktop Obsidian **1.13.7 or later**. The plugin has been tested on Windows with Obsidian **1.13.7**, SimpleBadge **0.6.0**, and Microsoft Edge. Version 0.4.0 also verifies export with SimpleBadge disabled and documents without badges. Version 0.1.1 fixes missing connection lines with Prism **3.8.0** and Style Settings **1.0.9**, verified against native Obsidian styles and the exported HTML/CSS. Other desktop platforms, later versions, and other third-party themes still require testing. See the [changelog](CHANGELOG.md) for release notes.
 
 ## Development
 
@@ -101,6 +114,7 @@ pnpm install --frozen-lockfile
 pnpm check
 pnpm test:search
 pnpm test:reader
+pnpm test:badges
 ```
 
 To deploy the built plugin to a development vault:

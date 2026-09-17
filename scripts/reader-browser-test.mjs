@@ -35,7 +35,7 @@ const cardContent=page=>page.locator('.sce-card-scroll').evaluateAll(els=>els.ma
 const view=page=>page.evaluate(()=>{const scene=document.querySelector('.sce-scene'),vp=document.querySelector('.sce-viewport'),scale=Number(scene.dataset.zoom);return {scale,cx:(vp.clientWidth/2-Number(scene.dataset.panX))/scale,cy:(vp.clientHeight/2-Number(scene.dataset.panY))/scale};});
 const assertView=(a,b)=>{assert.equal(a.scale,b.scale);assert.ok(Math.abs(a.cx-b.cx)<.01,`${a.cx} / ${b.cx}`);assert.ok(Math.abs(a.cy-b.cy)<.01,`${a.cy} / ${b.cy}`);};
 const readCard=async(page,id)=>{const button=page.locator(`[data-reader-node="${id}"] button`);await button.evaluate(el=>el.focus({preventScroll:true}));await button.press('Enter');await settle(page);assert.equal(await page.locator('.sce-reader').getAttribute('data-source'),id);};
-async function searchFor(page,value){await page.locator('input[type=search]').fill(value);await page.waitForFunction(()=>document.querySelector('.sce-search').getAttribute('aria-busy')==='false');}
+async function searchFor(page,value){await page.locator('.sce-search-input input[type=search]').fill(value);await page.waitForFunction(()=>document.querySelector('.sce-search').getAttribute('aria-busy')==='false');}
 const selected=page=>page.locator('.sce-reader').getAttribute('data-source');
 try{
   await writeFile('qa/reader/fixture.html',documentHTML());
@@ -63,9 +63,9 @@ try{
   await searchFor(page,'needle');assert.match(await page.locator('.sce-search-status').textContent(),/命中 2 张 · 3 处/);
   assert.equal(await page.evaluate(()=>CSS.highlights.get('sce-reader-search').size),2);
   await page.locator('.sce-reader-body').evaluate(el=>{el.focus({preventScroll:true});const range=document.createRange();range.selectNodeContents(el.querySelector('p'));const selection=getSelection();selection.removeAllRanges();selection.addRange(range);window.readerParagraph=el.querySelector('p');});
-  await page.evaluate(()=>{const input=document.querySelector('input[type=search]');input.value='alpha beta';input.dispatchEvent(new InputEvent('input',{bubbles:true}));});
+  await page.evaluate(()=>{const input=document.querySelector('.sce-search-input input[type=search]');input.value='alpha beta';input.dispatchEvent(new InputEvent('input',{bubbles:true}));});
   await page.waitForFunction(()=>document.querySelector('.sce-search').getAttribute('aria-busy')==='false');assert.equal(await selected(page),'rich');assert.equal(await page.evaluate(()=>document.querySelector('.sce-reader-body p')===window.readerParagraph),true);assert.match(await page.evaluate(()=>getSelection().toString()),/needle alpha beta/);
-  await page.locator('input[type=search]').press('Escape');assert.equal(await selected(page),'rich');assert.equal(await page.evaluate(()=>CSS.highlights.has('sce-reader-search')),false);
+  await page.locator('.sce-search-input input[type=search]').press('Escape');assert.equal(await selected(page),'rich');assert.equal(await page.evaluate(()=>CSS.highlights.has('sce-reader-search')),false);
   await page.locator('.sce-reader-close').click();assertView(await view(page),initialView);assert.deepEqual(await cardContent(page),original);
   await readCard(page,'long');
   await page.locator('.sce-reader-body').evaluate(el=>el.scrollTop=900);const longPosition=await page.locator('.sce-reader-body').evaluate(el=>el.scrollTop);
@@ -75,11 +75,11 @@ try{
   await page.locator('[data-reader-font="2"]').click();assert.ok(Math.abs(await page.locator('[data-anchor]').evaluate(el=>el.getBoundingClientRect().top)-anchor)<2);
   const scrolled=await page.locator('.sce-reader-body').evaluate(el=>el.scrollTop);await readCard(page,'long');assert.equal(await page.locator('.sce-reader-body').evaluate(el=>el.scrollTop),scrolled);
   await searchFor(page,'needle');assert.equal(await selected(page),'long');assert.equal(await page.locator('.sce-reader-body').evaluate(el=>el.scrollTop),scrolled);
-  await page.locator('input[type=search]').press('Enter');assert.equal(await selected(page),'rich');await page.locator('input[type=search]').press('Enter');assert.equal(await selected(page),'long');
-  assert.ok(await page.locator('.sce-reader-body').evaluate(el=>el.scrollTop>1000));assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('input[type=search]')),true);
+  await page.locator('.sce-search-input input[type=search]').press('Enter');assert.equal(await selected(page),'rich');await page.locator('.sce-search-input input[type=search]').press('Enter');assert.equal(await selected(page),'long');
+  assert.ok(await page.locator('.sce-reader-body').evaluate(el=>el.scrollTop>1000));assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('.sce-search-input input[type=search]')),true);
   const navScroll=await page.locator('.sce-reader-body').evaluate(el=>el.scrollTop);await page.locator('[data-search-action=all]').click();assert.equal(await selected(page),'long');assert.equal(await page.locator('.sce-reader-body').evaluate(el=>el.scrollTop),navScroll);
   await searchFor(page,'no-such-result');assert.equal(await selected(page),'long');assert.equal(await page.locator('.sce-reader-body').evaluate(el=>el.scrollTop),navScroll);
-  await page.locator('.sce-reader-close').click();await searchFor(page,'needle');await page.locator('input[type=search]').press('Enter');assert.ok(await page.locator('.sce-reader').isHidden());
+  await page.locator('.sce-reader-close').click();await searchFor(page,'needle');await page.locator('.sce-search-input input[type=search]').press('Enter');assert.ok(await page.locator('.sce-reader').isHidden());
   await readCard(page,'details');assert.equal(await page.locator('.sce-card.sce-reading').getAttribute('data-node-id'),'details');assert.equal(await page.locator('[data-node-id=details]').evaluate(el=>getComputedStyle(el).opacity),'1');
   assert.equal(await page.locator('[aria-current=true]').getAttribute('data-node-id'),'rich','Manual reading does not move search selection');
   await searchFor(page,'foldedneedle');const beforeFold=await page.locator('.sce-search-status').textContent();await page.locator('.sce-reader-body summary').click();await settle(page);
