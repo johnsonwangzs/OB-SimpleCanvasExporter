@@ -41,8 +41,8 @@ export class Assets {
     for (const embed of root.querySelectorAll<HTMLElement>('.internal-embed')) {
       if(embed.querySelector('img'))continue;
       const label=embed.getAttribute('src')??'Embedded content';
-      embed.textContent=`[${label}]`;this.warnings.add(`Embedded content is not supported: ${label}`);
+      embed.textContent=`[${label}]`;embed.classList.add('sce-resource-placeholder');this.warnings.add(`Embedded content is not supported: ${label}`);
     }
   }
-  private unavailable(image:HTMLImageElement,message:string):void { const text=image.ownerDocument.defaultView!.createSpan({text:`[${image.alt||message}]`});image.replaceWith(text);this.warnings.add(message); }
+  private unavailable(image:HTMLImageElement,message:string):void { const text=image.ownerDocument.defaultView!.createSpan({text:`[${image.alt||message}]`,cls:'sce-resource-placeholder'});image.replaceWith(text);this.warnings.add(message); }
 }

@@ -18,7 +18,20 @@ Windows 尚未设置 HTML 默认打开程序时，会出现“选择应用”窗
 
 HTML 初始适应全图。点击 **100%** 查看原始 CSS 像素大小；拖动空白区域平移，在卡片内滚动阅读，`Ctrl+滚轮` 缩放。卡片不会随浏览器宽度重排或被正文撑高。
 
-## v0.1.1 支持范围
+## 搜索导出的 HTML
+
+0.2.0 新导出的文件在顶部提供搜索框。输入关键词，所有命中文本卡片同时描边，正文关键词高亮；默认淡化其他卡片及相关连线，可关闭“淡化其他卡片”。搜索覆盖完整正文，包括需要滚动才能看到的文字、代码、Badge 和双链显示文字。
+
+搜索按字面短语匹配，英文不区分大小写，不解释正则表达式；文件、网页、分组的占位内容及隐藏链接目标不参与搜索。计数分别显示命中卡片数和关键词出现次数。
+
+- 输入时保持当前画布和正文滚动位置。
+- “上一张 / 下一张”按从上到下、从左到右的顺序定位卡片，并显示首个命中词；搜索框内也可用 `Enter / Shift+Enter`。
+- “查看全部结果”适应所有命中卡片；原有“适应全图”仍展示整张 Canvas。
+- 点击“清除”或在搜索控件内按 `Escape` 恢复原始外观，保持当前阅读位置。
+
+`Ctrl/Cmd+F` 仍使用浏览器原生查找。搜索内容只保存在当前页面内存中，刷新后清空；打印不保留搜索装饰。旧浏览器缺少文字范围高亮能力时，会提示仅支持卡片高亮，仍可搜索和定位。已经生成的旧 HTML 需要重新导出才能获得搜索功能。
+
+## v0.2.0 支持范围
 
 | 内容 | 行为 |
 | --- | --- |
@@ -56,6 +69,7 @@ HTML 初始适应全图。点击 **100%** 查看原始 CSS 像素大小；拖动
 ```sh
 pnpm install --frozen-lockfile
 pnpm check
+pnpm test:search
 pnpm deploy:dev "/path/to/development-vault"
 ```
 
@@ -65,7 +79,7 @@ pnpm deploy:dev "/path/to/development-vault"
 
 目录按用途组织：`src/` 保存插件源码，`tests/` 保存测试及固定样例，`scripts/` 保存开发脚本，`docs/` 保存补充文档，`assets/` 保存 README 图片。依赖、包缓存、生成的 `main.js`、`qa/` 测试产物和 `release/` 发布包均不提交到 Git。清理 `qa/` 后，可按[验收文档](docs/TESTING.md)重新生成所需数据。
 
-代码职责：`canvas.ts` 校验与几何计算，`runtime.ts` 当前视图及原生路径适配，`render.ts` 正文渲染，`styles.ts` 样式快照和静态清理，`assets.ts` 图片内嵌，`export.ts` 组装与保存，`viewer.ts` 浏览器阅读交互。
+代码职责：`canvas.ts` 校验与几何计算，`runtime.ts` 当前视图及原生路径适配，`render.ts` 正文渲染，`styles.ts` 样式快照和静态清理，`assets.ts` 图片内嵌，`export.ts` 组装与保存，`viewer-html.ts` 阅读器工具栏，`viewer.ts` 浏览器阅读与搜索交互。`pnpm test:search` 使用本机 Edge，独立生成测试 HTML，不依赖正在运行的 Obsidian；可用 `EDGE_PATH` 指定浏览器。
 
 详细验收结果与复现流程见 [TESTING.md](docs/TESTING.md)，原始设计见 [DESIGN.zh-CN.md](docs/DESIGN.zh-CN.md)。GitHub 上传及社区提交流程见英文[发布指南](docs/RELEASING.md)。
 

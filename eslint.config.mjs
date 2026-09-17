@@ -13,4 +13,9 @@ export default [
       },
     },
   },
+  {
+    // This function runs in exported HTML, where Obsidian's DOM extensions do not exist.
+    files: ['src/viewer.ts'],
+    rules: { 'obsidianmd/prefer-create-el': 'off', 'obsidianmd/prefer-instanceof': 'off' },
+  },
 ];

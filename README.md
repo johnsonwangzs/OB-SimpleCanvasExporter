@@ -22,7 +22,20 @@ The export captures the current view, including changes that have not yet been s
 
 The HTML viewer initially fits the entire Canvas into the window. Click **100%** to view cards at their original CSS pixel dimensions. Drag the background to pan, scroll inside a card to read its contents, and use `Ctrl+wheel` to zoom. Cards do not reflow when the browser window changes size or expand to fit their contents.
 
-## Supported features in v0.1.1
+## Search exported HTML
+
+New exports made with 0.2.0 include a search field. All matching text cards receive an outline and matching text is highlighted. Other cards and their connections are dimmed by default; turn off **Dim other cards** to retain their normal appearance. Search includes complete card contents, including scrolled-off text, code, badges, and displayed wikilink aliases.
+
+Queries are literal phrases, not regular expressions; English matching is case-insensitive. Unsupported node placeholders and hidden link destinations are excluded. The status distinguishes matching cards from total occurrences.
+
+- Typing leaves the viewport and card scroll positions unchanged.
+- **Previous card / Next card** follows the layout from top to bottom and left to right, and reveals the first occurrence. Use `Enter / Shift+Enter` in the search field for the same navigation.
+- **Show all results** fits matching cards into view. **Fit all** still shows the entire Canvas.
+- **Clear**, or `Escape` within the search controls, restores normal appearance and keeps the current reading position.
+
+`Ctrl/Cmd+F` continues to use browser find. Queries remain in page memory and are cleared on reload; printing removes search decoration. Browsers without CSS Custom Highlight support retain card highlighting, counts, and navigation, with an explanatory message. Older HTML files must be exported again to gain search.
+
+## Supported features in v0.2.0
 
 | Content | Export behavior |
 | --- | --- |
@@ -72,6 +85,7 @@ Install Node.js **22.16 or later** and pnpm, then run the following commands fro
 ```sh
 pnpm install --frozen-lockfile
 pnpm check
+pnpm test:search
 ```
 
 To deploy the built plugin to a development vault:
@@ -83,6 +97,8 @@ pnpm deploy:dev "/path/to/development-vault"
 `pnpm dev` watches for changes and rebuilds the plugin. Deployment copies only the three runtime files listed above. Disable and re-enable the plugin in your development vault to load an updated build.
 
 `pnpm check` runs the official Obsidian ESLint rules with zero warnings allowed, unit tests, the TypeScript production build, and release metadata checks. `pnpm release` runs these checks and copies the runtime files and license to `release/simple-canvas-exporter/`. The QA module lives in `tests/` and is excluded from production builds.
+
+`pnpm test:search` generates its own offline browser fixtures and uses the installed Edge browser (override with `EDGE_PATH`). It does not require Obsidian to be running. It also checks previously captured default/Prism exports when present in `qa/`. The standalone viewer uses standard browser DOM APIs; only its two Obsidian-specific DOM helper lint rules are disabled in the ESLint configuration.
 
 Pass the development vault path explicitly; the project does not configure a default vault. You can also invoke `node scripts/deploy.mjs "/path/to/development-vault"` directly.
 
@@ -98,7 +114,8 @@ The source modules are organized as follows:
 | `styles.ts` | Style snapshots and conversion to static content |
 | `assets.ts` | Image embedding |
 | `export.ts` | HTML assembly and file saving |
-| `viewer.ts` | Browser navigation, zooming, and scrolling |
+| `viewer-html.ts` | Exported viewer toolbar and localized search controls |
+| `viewer.ts` | Browser navigation, zooming, scrolling, and text search |
 
 See [TESTING.md](docs/TESTING.md) for validation results and reproduction steps, and [DESIGN.zh-CN.md](docs/DESIGN.zh-CN.md) for the original design. Both documents are currently in Chinese. See [the release guide](docs/RELEASING.md) for GitHub and community submission steps.
 

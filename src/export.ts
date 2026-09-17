@@ -4,6 +4,7 @@ import { matchingPath, type Snapshot, type NativePath } from './runtime';
 import { computed, freezeTree, StyleBank, viewerCSS, resolveColor } from './styles';
 import { Renderer, type RenderedCard } from './render';
 import { startViewer } from './viewer';
+import { viewerToolbar } from './viewer-html';
 import { type Strings } from './i18n';
 
 export interface ExportResult { html:string; warnings:string[]; cards:number; connections:number; nativePaths:number; elapsedMs:number; metrics:{id:string;scrollHeight:number;clientHeight:number}[] }
@@ -40,19 +41,18 @@ export async function exportCanvas(app:App,snap:Snapshot,s:Strings,signal:AbortS
     const b=sceneBounds(snap.data.nodes,edgeBounds),padding=40,dx=-b.minX+padding,dy=-b.minY+padding,width=b.maxX-b.minX+2*padding,height=b.maxY-b.minY+2*padding;
     const bodyClass=bank.add(theme(snap));
     const nodeHTML=cards.map((c,i)=>`<article class="sce-card ${c.frameClass}" data-node-id="${esc(c.node.id)}" data-node-type="${esc(c.node.type)}" style="left:${c.node.x+dx}px;top:${c.node.y+dy}px;width:${c.node.width}px;height:${c.node.height}px;z-index:${i+2}">${c.html}</article>`).join('\n');
-    const labels=records.filter(r=>r.edge.label).map(r=>`<div class="sce-edge-label" style="left:${r.geometry.center.x+dx}px;top:${r.geometry.center.y+dy}px;z-index:${cards.length+3}">${esc(r.edge.label!)}</div>`).join('');
-    const buttons=[['out',s.out,'−'],['in',s.in,'+'],['reset',s.reset,'100%'],['fit',s.fit,s.fit]].map(([action,label,text])=>`<button type="button" data-action="${action}" title="${esc(label)}" aria-label="${esc(label)}">${esc(text)}</button>`).join('');
+    const labels=records.filter(r=>r.edge.label).map(r=>`<div class="sce-edge-label" data-edge-label="${esc(r.edge.id)}" data-from-node="${esc(r.edge.fromNode)}" data-to-node="${esc(r.edge.toNode)}" style="left:${r.geometry.center.x+dx}px;top:${r.geometry.center.y+dy}px;z-index:${cards.length+3}">${esc(r.edge.label!)}</div>`).join('');
     const title=snap.file.basename;
     const html=`<!doctype html>
 <html lang="${s.export==='导出'?'zh-CN':'en'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src data:; base-uri 'none'; form-action 'none'">
-<meta name="generator" content="Simple Canvas Exporter 0.1.1"><title>${esc(title)}</title>
+<meta name="generator" content="Simple Canvas Exporter 0.2.0"><title>${esc(title)}</title>
 <style>${viewerCSS}\n${bank.css()}</style></head><body class="${bodyClass}">
-<header class="sce-toolbar"><div class="sce-title" title="${esc(title)}">${esc(title)}</div><span class="sce-count">${cards.length} ${esc(s.cards)} · ${records.length} ${esc(s.connections)}</span><nav class="sce-controls" aria-label="Canvas"><output class="sce-zoom" aria-live="polite">100%</output>${buttons}</nav></header>
+${viewerToolbar(s,title,cards.length,records.length)}
 <main class="sce-viewport" tabindex="0" aria-label="${esc(title)}"><div class="sce-scene" data-width="${width}" data-height="${height}" data-origin-x="${dx}" data-origin-y="${dy}" style="width:${width}px;height:${height}px">
 <svg class="sce-edges" xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" aria-hidden="true"><g transform="translate(${dx} ${dy})">${edgeHTML.join('\n')}</g></svg>
 ${nodeHTML}${labels}${cards.length?'':`<div class="sce-empty">${esc(s.empty)}</div>`}</div></main><div class="sce-help">${esc(s.help)}</div>
-<script>(${startViewer.toString()})();</script></body></html>`;
+<script>(${startViewer.toString()})(${JSON.stringify(s.searchCurrent).replace(/</g,'\\u003c')});</script></body></html>`;
     return {html,warnings:[...warnings],cards:cards.length,connections:records.length,nativePaths,elapsedMs:Math.round(performance.now()-started),metrics:cards.map(c=>({id:c.node.id,scrollHeight:c.scrollHeight,clientHeight:c.clientHeight}))};
   } finally {renderer.dispose();}
 }
@@ -96,10 +96,12 @@ function theme(snap:Snapshot):Record<string,string> {
   const value=(name:string,fallback:string)=>body.getPropertyValue(name).trim()||fallback;
   const scrollbar=root.querySelector<HTMLElement>('.markdown-preview-view');
   const size=scrollbar?computed(scrollbar,'::-webkit-scrollbar').width:'12px';
+  const dark=doc.body.classList.contains('theme-dark');
   return {'--sce-bg':style.backgroundColor==='rgba(0, 0, 0, 0)'?value('--background-primary','#1e1e1e'):style.backgroundColor,
     '--sce-text':body.color,'--sce-border':value('--background-modifier-border','#444'),'--sce-hover':value('--background-secondary','#282828'),
     '--sce-accent':value('--interactive-accent','#a68af9'),'--sce-scroll-thumb':value('--scrollbar-thumb-bg','rgba(128,128,128,.45)'),
-    '--sce-scrollbar':/^\d/.test(size)?size:'12px','color-scheme':doc.body.classList.contains('theme-dark')?'dark':'light'};
+    '--sce-search-accent':dark?'#b49bec':'#7052bf','--sce-search-hit-bg':dark?'#715416':'#ffe68a','--sce-search-hit-text':dark?'#fff0b8':'#32270b',
+    '--sce-scrollbar':/^\d/.test(size)?size:'12px','color-scheme':dark?'dark':'light'};
 }
 
 export async function saveHTML(app:App,requested:string,html:string,signal:AbortSignal):Promise<string> {
