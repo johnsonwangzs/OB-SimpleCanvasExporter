@@ -1,5 +1,6 @@
 import { getLanguage } from 'obsidian';
 export const EN={
+  watermark:'Background watermark',watermarkHint:'Save a diagonal text watermark with this HTML. Shown beneath cards.',watermarkText:'Watermark text',watermarkPlaceholder:'Project notes · For discussion',watermarkOpacity:'Opacity',watermarkStyle:'30° tilt · Automatic spacing · Preview',watermarkPreview:'Watermark preview',watermarkCard:'Card content',watermarkEmpty:'Enter watermark text.',watermarkLong:'Use at most 40 characters for the watermark.',
   groups:'groups',
   command:'Export current Canvas to HTML',title:'Export Canvas to HTML',path:'Save to',pathHint:'Path within this vault. Existing files receive a numbered copy.',
   exportTitle:'Page title',exportTitleHint:'Shown in the page and browser tab. Leave blank to use the Canvas name.',author:'Author',showAuthor:'Show author',authorHint:'Shown beside the title when enabled. Leave blank to omit.',authorPlaceholder:'Author name',exportTime:'Export time',showTime:'Show export time',exportTimeHint:'Local time when export starts; stays unchanged when the HTML is reopened.',
@@ -17,6 +18,7 @@ export const EN={
 };
 export type Strings=typeof EN;
 export const ZH:Strings={
+  watermark:'背景水印',watermarkHint:'将斜向文字水印保存在 HTML 中，显示在卡片下方。',watermarkText:'水印文字',watermarkPlaceholder:'项目资料 · 仅供交流',watermarkOpacity:'不透明度',watermarkStyle:'倾斜 30° · 自动间距 · 效果预览',watermarkPreview:'水印预览',watermarkCard:'卡片正文',watermarkEmpty:'请输入水印文字。',watermarkLong:'水印文字最多 40 个字符。',
   groups:'个分组',
   command:'将当前 Canvas 导出为 HTML',title:'将 Canvas 导出为 HTML',path:'保存位置',pathHint:'填写 vault 内的路径。已有同名文件时自动保存编号副本。',
   exportTitle:'页面标题',exportTitleHint:'用于页面顶部和浏览器标签；留空使用 Canvas 名称。',author:'作者',showAuthor:'显示作者',authorHint:'勾选后显示在标题右侧；作者留空则不显示。',authorPlaceholder:'作者姓名',exportTime:'导出时间',showTime:'显示导出时间',exportTimeHint:'记录开始导出时的本地时间；重新打开 HTML 时保持不变。',

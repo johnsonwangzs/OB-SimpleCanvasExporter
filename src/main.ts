@@ -5,6 +5,7 @@ import { strings, type Strings } from './i18n';
 import { outputPath } from './canvas';
 import { shell } from 'electron';
 import { type ExportOptions } from './metadata';
+import { createWatermark, normalizeWatermark, watermarkProblem } from './watermark';
 
 declare const __QA__:boolean;
 export default class SimpleCanvasExporter extends Plugin {
@@ -40,6 +41,41 @@ export class ExportModal extends Modal {
       .addToggle(t=>{t.setValue(false).onChange(v=>{options.showAuthor=v;updateFields();});t.toggleEl.setAttribute('aria-label',s.showAuthor);refreshFields.push(()=>{t.setDisabled(disabled());});})
       .addText(t=>{t.setPlaceholder(s.authorPlaceholder).onChange(v=>{options.author=v;});t.inputEl.addClass('sce-export-author');t.inputEl.setAttribute('aria-label',s.author);refreshFields.push(()=>{t.setDisabled(disabled()||!options.showAuthor);});});
     new Setting(this.contentEl).setName(s.showTime).setDesc(s.exportTimeHint).addToggle(t=>{t.setValue(false).onChange(v=>{options.showTime=v;});t.toggleEl.setAttribute('aria-label',s.showTime);refreshFields.push(()=>{t.setDisabled(disabled());});});
+    const watermark={enabled:false,text:'',opacity:8};options.watermark=watermark;
+    new Setting(this.contentEl).setName(s.watermark).setDesc(s.watermarkHint).addToggle(t=>{
+      t.setValue(false).onChange(v=>{watermark.enabled=v;showWatermarkError(false);updateFields();});
+      t.toggleEl.setAttribute('aria-label',s.watermark);refreshFields.push(()=>{t.setDisabled(disabled());});
+    });
+    const watermarkFields=this.contentEl.createDiv({cls:'sce-watermark-fields'});
+    let watermarkInput:HTMLInputElement;
+    new Setting(watermarkFields).setName(s.watermarkText).addText(t=>{
+      watermarkInput=t.inputEl;t.inputEl.addClass('sce-watermark-text');t.inputEl.setAttribute('aria-label',s.watermarkText);
+      t.inputEl.setAttribute('aria-describedby','sce-watermark-error');t.inputEl.setAttribute('aria-invalid','false');
+      t.setPlaceholder(s.watermarkPlaceholder).onChange(v=>{watermark.text=v;showWatermarkError(!watermarkError.hidden);renderPreview();});
+      refreshFields.push(()=>{t.setDisabled(disabled()||!watermark.enabled);});
+    });
+    const watermarkError=watermarkFields.createEl('p',{cls:'sce-watermark-error',attr:{id:'sce-watermark-error',role:'alert'}});watermarkError.hidden=true;
+    const opacitySetting=new Setting(watermarkFields).setName(s.watermarkOpacity);
+    const opacityValue=opacitySetting.controlEl.createEl('output',{text:'8%',cls:'sce-watermark-opacity-value'});
+    opacitySetting.addSlider(slider=>{
+      slider.setLimits(4,16,1).setValue(8).onChange(v=>{watermark.opacity=v;opacityValue.textContent=`${v}%`;slider.sliderEl.setAttribute('aria-valuetext',`${v}%`);renderPreview();});
+      slider.sliderEl.setAttribute('aria-label',s.watermarkOpacity);slider.sliderEl.setAttribute('aria-valuetext','8%');
+      refreshFields.push(()=>{slider.setDisabled(disabled()||!watermark.enabled);});
+    });
+    watermarkFields.createEl('p',{text:s.watermarkStyle,cls:'sce-watermark-preview-label'});
+    const preview=watermarkFields.createDiv({cls:'sce-watermark-preview',attr:{role:'img','aria-label':s.watermarkPreview}});
+    preview.createDiv({cls:'sce-watermark-preview-card',text:s.watermarkCard});
+    function showWatermarkError(report:boolean):boolean {
+      const problem=watermarkProblem(watermark);
+      watermarkError.hidden=!report||!problem;watermarkError.textContent=problem==='long'?s.watermarkLong:s.watermarkEmpty;
+      watermarkInput.setAttribute('aria-invalid',String(report&&!!problem));return !problem;
+    }
+    function renderPreview():void {
+      preview.querySelector('svg')?.remove();
+      const normalized=normalizeWatermark(watermark);
+      if(normalized){const doc=preview.ownerDocument;preview.appendChild(createWatermark(doc,normalized,doc.defaultView!.getComputedStyle(preview).backgroundColor,'sce-watermark-preview-pattern'));}
+    }
+    refreshFields.push(()=>{watermarkFields.hidden=!watermark.enabled;renderPreview();});
     updateFields();
     this.contentEl.createEl('p',{text:s.networkHint,cls:'sce-export-network-hint'});
     const status=this.contentEl.createDiv({cls:'sce-export-status',attr:{role:'status','aria-live':'polite'}});
@@ -47,7 +83,10 @@ export class ExportModal extends Modal {
     const actions=this.contentEl.createDiv({cls:'sce-export-actions'});
     const cancel=actions.createEl('button',{text:s.cancel});cancel.addEventListener('click',()=>this.close());
     const run=actions.createEl('button',{text:s.export,cls:'mod-cta'});
-    run.addEventListener('click',()=>{void this.run(path,{...options},s,status,progress,run,cancel,updateFields);});
+    run.addEventListener('click',()=>{
+      if(!showWatermarkError(true)){watermarkInput.focus();return;}
+      void this.run(path,{...options,watermark:{...watermark}},s,status,progress,run,cancel,updateFields);
+    });
   }
   private async run(path:string,options:ExportOptions,s:Strings,status:HTMLElement,progress:HTMLProgressElement,run:HTMLButtonElement,cancel:HTMLButtonElement,updateFields:()=>void):Promise<void> {
     if(this.running||this.finished)return;

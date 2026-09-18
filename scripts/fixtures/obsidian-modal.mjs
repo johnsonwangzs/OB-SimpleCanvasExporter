@@ -40,10 +40,18 @@ class Toggle{
   onChange(callback){this.callback=callback;return this;}
 }
 export class Setting{
-  constructor(container){this.settingEl=container.createDiv({cls:'setting-item'});const info=this.settingEl.createDiv({cls:'setting-item-info'});this.name=info.createDiv({cls:'setting-item-name'});this.desc=info.createDiv({cls:'setting-item-description'});this.control=this.settingEl.createDiv({cls:'setting-item-control'});}
+  constructor(container){this.settingEl=container.createDiv({cls:'setting-item'});const info=this.settingEl.createDiv({cls:'setting-item-info'});this.name=info.createDiv({cls:'setting-item-name'});this.desc=info.createDiv({cls:'setting-item-description'});this.control=this.settingEl.createDiv({cls:'setting-item-control'});this.controlEl=this.control;}
   setName(value){this.name.textContent=value;return this;}
   setDesc(value){this.desc.textContent=value;return this;}
   setClass(value){this.settingEl.classList.add(value);return this;}
   addText(callback){callback(new Text(this.control));return this;}
   addToggle(callback){callback(new Toggle(this.control));return this;}
+  addSlider(callback){callback(new Slider(this.control));return this;}
+}
+class Slider{
+  constructor(container){this.sliderEl=container.createEl('input',{attr:{type:'range'}});}
+  setLimits(min,max,step){Object.assign(this.sliderEl,{min,max,step});return this;}
+  setValue(value){this.sliderEl.value=value;return this;}
+  setDisabled(disabled){this.sliderEl.disabled=disabled;return this;}
+  onChange(callback){this.sliderEl.addEventListener('input',()=>callback(Number(this.sliderEl.value)));return this;}
 }

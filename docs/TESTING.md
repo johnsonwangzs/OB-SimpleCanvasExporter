@@ -1,5 +1,19 @@
 # 验收记录
 
+## v1.2.0：斜向背景水印
+
+日期：2026-09-18。Windows、本机 Edge 153，离线浏览器验收。本轮没有部署到开发 vault，也没有在运行中的 Obsidian 内重新导出。
+
+- `pnpm release` 通过 lint、24 项单元测试、TypeScript 构建和 1.2.0 版本一致性检查，生成正式安装文件。新增 3 项水印单元测试覆盖关闭时省略、空白 / Unicode 长度、单行归一化、不透明度边界和独立快照。
+- `pnpm test:watermark` 使用最小 Obsidian 控件适配器调用真实导出窗口与 `exportCanvas`，核验默认关闭、空白 / 超长报错、实时预览、不透明度、执行期间字段锁定、写入失败重试及导出配置快照；测试适配器不代表 Obsidian 原生 UI 已现场验收。
+- 验证中英文、HTML 特殊字符、40 个补充平面 Unicode 字符和长文字的旋转边界；未启用水印时不输出 SVG 或用户输入的水印文字。颜色转换失败时保留导出原水印色。
+- 深浅主题下检查 1360 / 650 / 320px、画布平移缩放、正文及阅读面板滚动、关键词搜索、Badge 筛选、六色背景功能相关路径、选色器预览、HEX、刷新恢复及还原底色。水印图案尺寸保持稳定，正文与冻结样式保持不变；水印文字不计入卡片搜索。
+- 使用真实历史冻结内容派生新阅读器夹具：默认和 Prism 样例各 25 张卡片 / 24 条连线；分组样例 53 张卡片 / 3 个分组 / 52 条连线。换色前后原卡片、分组及连线 DOM 不变，人工检查叠放与透明底色效果。这些派生夹具不表示本轮执行过新的 Obsidian 现场导出。
+- 禁用 JavaScript 时水印覆盖完整可滚动画布；打印媒体中恢复原底色对应的水印色，图案覆盖 1100×1800 场景。检查 Edge 输出的两页 A4 PDF，两页均保留其覆盖范围内的水印，场景结束后的纸张留白不额外填充水印。
+- 搜索、阅读、Badge、背景、元数据五个既有浏览器专项通过；水印专项无脚本异常、无自动网络请求。独立分组专项依赖其原版本的现场导出，本次分组兼容性由上述历史内容派生夹具核验。
+
+复现：`pnpm test:watermark`、`pnpm test:metadata`、`pnpm test:background`、`pnpm test:search`、`pnpm test:reader`、`pnpm test:badges`、`pnpm release`。专项报告、截图和打印 PDF 位于 `qa/watermark/`；正式安装包为 `release/simple-canvas-exporter-1.2.0.zip`。
+
 ## v1.1.0：Canvas 分组静态显示
 
 日期：2026-09-18。Windows、Obsidian 1.13.7、Prism 3.8.0、Advanced Canvas 7.0.0、Simple Badge 1.0.0；浏览器为本机 Edge。

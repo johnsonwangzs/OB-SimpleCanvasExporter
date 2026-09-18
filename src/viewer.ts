@@ -1,6 +1,6 @@
 /* Standalone browser runtime: Obsidian DOM extensions are unavailable here. */
 /** Serialized into the exported document. Keep this function self-contained. */
-export function startViewer(currentLabel='Current'):void {
+export function startViewer(currentLabel='Current',getWatermarkInk?:(background:string,doc:Document,fallback?:string)=>string):void {
   const viewport=document.querySelector<HTMLElement>('.sce-viewport')!;
   const scene=document.querySelector<HTMLElement>('.sce-scene')!;
   const zoomLabel=document.querySelector<HTMLElement>('.sce-zoom')!;
@@ -104,6 +104,8 @@ export function startViewer(currentLabel='Current'):void {
       color=next;resetFailed=false;
       if(color===undefined)document.body.style.removeProperty('--sce-canvas-bg');
       else document.body.style.setProperty('--sce-canvas-bg',color);
+      const watermark=viewport.querySelector<SVGSVGElement>('.sce-watermark');
+      if(watermark&&getWatermarkInk)watermark.style.setProperty('--sce-watermark-ink',getWatermarkInk(getComputedStyle(viewport).backgroundColor,document,watermark.style.getPropertyValue('--sce-watermark-original-ink')));
       sync();pending=save;
     }
     function commitHex(report=true):void {

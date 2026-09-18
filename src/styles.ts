@@ -112,6 +112,7 @@ export function resolveColor(color:string|undefined,host:HTMLElement):string|und
 }
 
 export const viewerCSS = `
+.sce-watermarked{isolation:isolate}.sce-watermarked>.sce-scene{z-index:1}.sce-watermark{position:absolute;inset:0;width:max(100%,var(--sce-static-width));height:max(100%,var(--sce-static-height));z-index:0;pointer-events:none;user-select:none;color:var(--sce-watermark-ink)}.sce-interactive>.sce-watermark{width:100%;height:100%}
 .sce-groups{position:absolute;inset:0;z-index:0;pointer-events:none}.sce-group{position:absolute;overflow:visible;pointer-events:none}.sce-group-frame{position:absolute;inset:0;width:100%;height:100%}.sce-group-label{pointer-events:none}.sce-scene>.sce-edges{z-index:1}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body{font:14px system-ui,sans-serif;background:var(--sce-bg);color:var(--sce-text)}
 .sce-toolbar{background:var(--sce-bg);border-bottom:1px solid var(--sce-border);position:relative;z-index:20}.sce-toolbar-main{min-height:58px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:10px 18px}
@@ -147,4 +148,5 @@ export const viewerCSS = `
 @media(pointer:coarse){.sce-reader button,.sce-reader-trigger{min-height:44px;min-width:44px}.sce-reader-trigger{opacity:1}.sce-search-tiny .sce-reader-trigger{opacity:0}.sce-search-tiny .sce-card:hover+.sce-reader-anchor .sce-reader-trigger,.sce-search-tiny .sce-card:focus-within+.sce-reader-anchor .sce-reader-trigger,.sce-search-tiny .sce-reader-anchor:hover .sce-reader-trigger,.sce-search-tiny .sce-reader-anchor:focus-within .sce-reader-trigger{opacity:1}}
 .sce-empty{display:inline-block;background:var(--sce-bg);color:var(--sce-text)}
 @media print{html,body{overflow:visible}.sce-toolbar,.sce-help,.sce-search-ring,.sce-reader,.sce-reader-anchor,.sce-background-popup{display:none!important}.sce-viewport{position:static;overflow:visible!important;background:var(--sce-bg)}.sce-scene{position:relative!important;transform:none!important}.sce-card.sce-search-dim,.sce-search-edge-faint,.sce-search-edge-related{opacity:var(--sce-original-opacity,1)!important}::highlight(sce-search){background-color:transparent;color:inherit}}
+@media print{.sce-viewport.sce-watermarked{position:relative;inset:auto!important;width:var(--sce-static-width);min-height:var(--sce-static-height)}.sce-watermarked>.sce-watermark{width:100%;height:100%;color:var(--sce-watermark-original-ink);print-color-adjust:exact}}
 `;

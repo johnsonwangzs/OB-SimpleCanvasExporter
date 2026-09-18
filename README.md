@@ -11,7 +11,7 @@ Export the current Obsidian Canvas to a single HTML file. Cards retain their pos
 1. Open a Canvas in Obsidian.
 2. Press `Ctrl+P` to open the command palette and search for `Simple Canvas Exporter`.
 3. Run **Export current Canvas to HTML**. The command is localized when Obsidian is set to Chinese.
-4. Choose an output path within your vault, optionally edit the page title or enable author/export time, and click **Export**. By default, the HTML file is saved next to the Canvas. Existing files are preserved: subsequent exports receive numbered names such as `name (2).html`.
+4. Choose an output path within your vault, optionally edit the page title, enable author/export time or a background watermark, and click **Export**. By default, the HTML file is saved next to the Canvas. Existing files are preserved: subsequent exports receive numbered names such as `name (2).html`.
 5. Click **Open in browser**, or open the generated HTML file directly in your browser.
 
 ![Export](assets/1.png)
@@ -29,6 +29,14 @@ Version 1.0.0 adds **Page title** to the export dialog. It defaults to the Canva
 **Show author** and **Show export time** are independent, initially disabled options. Enable the author option and enter a name; a blank author is omitted. Selected metadata appears to the right of the title on the same line, in title/author/time order. Long titles and authors use ellipsis with the complete text available on hover. Narrow screens move controls below while keeping this header on one line.
 
 The timestamp captures the local time when export starts, displayed as `YYYY-MM-DD HH:mm`, with seconds and UTC offset on hover. It remains fixed when reopening, sharing, or viewing in another time zone. These options apply to the current export and reset when the dialog is opened again. Printing continues to hide the toolbar.
+
+## Add a background watermark
+
+Version 1.2.0 adds an optional **Background watermark** in the export dialog. Enable it, enter up to 40 Unicode characters, and adjust **Opacity** from 4% to 16% (8% by default) with a live preview. Blank or overlong text requires correction; line breaks and repeated whitespace become single spaces.
+
+Watermarks use 24px system text at a 30° angle, with staggered tiles and extra spacing for long text. Their size stays constant during Canvas pan/zoom, and their ink adapts to the selected background. They sit below groups, connections, and cards: opaque surfaces hide them, while transparent surfaces reveal them. Selection, scrolling, search, badges, and the reader keep their existing behavior.
+
+Each HTML file includes its watermark for offline and no-script viewing. Printing retains it across the complete unscaled scene. There is no watermark editor in the exported viewer; reopening the export dialog starts with watermarks disabled. Existing HTML must be exported again. Watermarks communicate attribution or usage terms; recipients can still edit the HTML or capture cards without the background.
 
 ## Search exported HTML
 
@@ -84,7 +92,7 @@ Version 1.1.0 exports group frames and labels at their original Canvas coordinat
 
 Groups are static: collapse/expand controls and group background images are not exported. Group labels do not participate in text-card search, Badge filtering, or the reader. The toolbar counts groups separately from cards. Re-export older HTML files to include groups.
 
-## Supported features in v1.1.0
+## Supported features in v1.2.0
 
 | Content | Export behavior |
 | --- | --- |
@@ -139,6 +147,7 @@ pnpm test:reader
 pnpm test:badges
 pnpm test:background
 pnpm test:metadata
+pnpm test:watermark
 ```
 
 To deploy the built plugin to a development vault:

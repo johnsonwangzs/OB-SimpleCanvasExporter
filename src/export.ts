@@ -7,12 +7,16 @@ import { startViewer } from './viewer';
 import { viewerToolbar } from './viewer-html';
 import { type Strings } from './i18n';
 import { exportMetadata, type ExportOptions } from './metadata';
+import { createWatermark, normalizeWatermark, watermarkInk, watermarkProblem } from './watermark';
 
 export interface ExportResult { html:string; warnings:string[]; cards:number; groups:number; connections:number; nativePaths:number; elapsedMs:number; metrics:{id:string;scrollHeight:number;clientHeight:number}[] }
 interface EdgeRecord { edge:CanvasEdge; geometry:EdgeGeometry; nativeHTML:string|undefined; bounds:Bounds }
 export async function exportCanvas(app:App,snap:Snapshot,s:Strings,signal:AbortSignal,progress:(done:number,total:number)=>void=()=>{},options:ExportOptions={}):Promise<ExportResult> {
   const started=performance.now(),warnings=new Set(snap.data.warnings),bank=new StyleBank();
   signal.throwIfAborted();
+  const problem=watermarkProblem(options.watermark);
+  if(problem)throw Error(problem==='empty'?s.watermarkEmpty:s.watermarkLong);
+  const watermark=normalizeWatermark(options.watermark);
   const metadata=exportMetadata(snap.file.basename,options);
   const renderer=new Renderer(app,snap,bank,signal,warnings);
   try {
@@ -42,7 +46,8 @@ export async function exportCanvas(app:App,snap:Snapshot,s:Strings,signal:AbortS
     const edgeBounds=records.map(r=>r.edge.label?{minX:Math.min(r.bounds.minX,r.geometry.center.x-150),maxX:Math.max(r.bounds.maxX,r.geometry.center.x+150),minY:Math.min(r.bounds.minY,r.geometry.center.y-100),maxY:Math.max(r.bounds.maxY,r.geometry.center.y+100)}:r.bounds);
     const groupBounds=cards.flatMap(c=>c.visualBounds?[c.visualBounds]:[]);
     const b=sceneBounds(snap.data.nodes,[...edgeBounds,...groupBounds]),padding=40,dx=-b.minX+padding,dy=-b.minY+padding,width=b.maxX-b.minX+2*padding,height=b.maxY-b.minY+2*padding;
-    const bodyClass=bank.add(theme(snap));
+    const colors=theme(snap),bodyClass=bank.add(colors);
+    const watermarkHTML=watermark?createWatermark(snap.document,watermark,colors['--sce-bg']).outerHTML:'';
     const groups=cards.filter(c=>c.node.type==='group').sort((a,b)=>b.node.width*b.node.height-a.node.width*a.node.height);
     const contentCards=cards.filter(c=>c.node.type!=='group');
     const position=(c:RenderedCard)=>`left:${c.node.x+dx}px;top:${c.node.y+dy}px;width:${c.node.width}px;height:${c.node.height}px;`;
@@ -53,14 +58,14 @@ export async function exportCanvas(app:App,snap:Snapshot,s:Strings,signal:AbortS
     const html=`<!doctype html>
 <html lang="${s.export==='导出'?'zh-CN':'en'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src data:; base-uri 'none'; form-action 'none'">
-<meta name="generator" content="Simple Canvas Exporter 1.1.0"><title>${esc(title)}</title>
+<meta name="generator" content="Simple Canvas Exporter 1.2.0"><title>${esc(title)}</title>
 <style>${viewerCSS}\n${bank.css()}</style></head><body class="${bodyClass}" data-sce-export-id="${snap.document.defaultView!.crypto.randomUUID()}">
 ${viewerToolbar(s,title,contentCards.length,records.length,metadata,groups.length)}
-<main class="sce-viewport" tabindex="0" aria-label="${esc(title)}"><div class="sce-scene" data-width="${width}" data-height="${height}" data-origin-x="${dx}" data-origin-y="${dy}" style="width:${width}px;height:${height}px">
+<main class="sce-viewport${watermark?' sce-watermarked':''}"${watermark?` style="--sce-static-width:${width}px;--sce-static-height:${height}px"`:''} tabindex="0" aria-label="${esc(title)}">${watermarkHTML}<div class="sce-scene" data-width="${width}" data-height="${height}" data-origin-x="${dx}" data-origin-y="${dy}" style="width:${width}px;height:${height}px">
 <div class="sce-groups">${groupHTML}</div>
 <svg class="sce-edges" xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" aria-hidden="true"><g transform="translate(${dx} ${dy})">${edgeHTML.join('\n')}</g></svg>
 ${nodeHTML}${labels}${cards.length?'':`<div class="sce-empty">${esc(s.empty)}</div>`}</div></main><div class="sce-help">${esc(s.help)}</div>
-<script>(${startViewer.toString()})(${JSON.stringify(s.searchCurrent).replace(/</g,'\\u003c')});</script></body></html>`;
+<script>(${startViewer.toString()})(${JSON.stringify(s.searchCurrent).replace(/</g,'\\u003c')}${watermark?`,${watermarkInk.toString()}`:''});</script></body></html>`;
     return {html,warnings:[...warnings],cards:contentCards.length,groups:groups.length,connections:records.length,nativePaths,elapsedMs:Math.round(performance.now()-started),metrics:contentCards.map(c=>({id:c.node.id,scrollHeight:c.scrollHeight,clientHeight:c.clientHeight}))};
   } finally {renderer.dispose();}
 }

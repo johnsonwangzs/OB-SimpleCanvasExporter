@@ -1,5 +1,6 @@
+import { type WatermarkOptions } from './watermark';
 /** Display options for one export; they do not change the source or output path. */
-export interface ExportOptions { title?:string; author?:string; showAuthor?:boolean; showTime?:boolean }
+export interface ExportOptions { title?:string; author?:string; showAuthor?:boolean; showTime?:boolean; watermark?:WatermarkOptions }
 export interface ExportMetadata {
   title:string;
   author?:string;

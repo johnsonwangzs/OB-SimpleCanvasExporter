@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0
+
+- Add optional diagonal background watermarks to HTML exports, with custom text, 4–16% opacity (8% by default), and a live preview in the export dialog. Validate up to 40 Unicode characters and preserve settings in each exported file.
+- Tile text at a 30° angle beneath groups, connections, and cards. Keep the pattern size stable during Canvas pan/zoom, automatically space long text, and adapt its ink to the selected background color.
+- Preserve watermarks offline, without JavaScript, and across the full printed scene. Keep them out of text-card search, Badge filters, reader content, pointer interactions, and disabled exports.
+- Add dialog-to-export and browser regression coverage for validation, text escaping, responsive themes, color persistence, existing interactions, captured Obsidian content, and print layout.
+
 ## 1.1.0
 
 - Export Canvas groups as static frames and labels, preserving their positions, dimensions, border styles, corner radii, and background tints from the current theme. Reconstruct native group elements when their live DOM is unavailable.
