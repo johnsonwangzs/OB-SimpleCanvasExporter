@@ -9,7 +9,7 @@
 1. 打开一张 Canvas。
 2. 按 `Ctrl+P`，搜索 `Simple Canvas Exporter`。
 3. 执行 **Export current Canvas to HTML**。Obsidian 使用中文时，命令为 **将当前 Canvas 导出为 HTML**。
-4. 确认 vault 内的输出路径，点击导出。默认保存到 Canvas 旁边；同名文件自动变为 `name (2).html`，不会覆盖。
+4. 确认 vault 内的输出路径，可修改页面标题、勾选显示作者或导出时间，然后点击导出。默认保存到 Canvas 旁边；同名文件自动变为 `name (2).html`，不会覆盖。
 5. 点击 **Open in browser / 在浏览器中打开**，或直接用浏览器打开生成的 HTML。
 
 Windows 尚未设置 HTML 默认打开程序时，会出现“选择应用”窗口，选择 Edge、Chrome 等浏览器即可。
@@ -17,6 +17,14 @@ Windows 尚未设置 HTML 默认打开程序时，会出现“选择应用”窗
 导出读取当前视图，包括尚未写入磁盘的改动。默认导出整张 Canvas，包含屏幕外的卡片，正文滚动位置从顶部开始。
 
 HTML 初始适应全图。点击 **100%** 查看原始 CSS 像素大小；拖动空白区域平移，在卡片内滚动阅读，`Ctrl+滚轮` 缩放。卡片不会随浏览器宽度重排或被正文撑高。
+
+## 设置标题、作者和导出时间
+
+1.0.0 在导出窗口中提供 **页面标题**，默认填入 Canvas 名称，留空时仍使用该名称。标题同时用于 HTML 顶部、浏览器标签和画布的可访问名称；输出文件名由“保存位置”决定。
+
+**显示作者** 与 **显示导出时间** 是两个独立开关，默认关闭。勾选显示作者后填写姓名；留空则省略作者。启用的项目按“标题 → 作者 → 导出时间”的顺序在顶部同一行显示。长标题和长作者会缩略，可悬停查看全文；窄屏将操作按钮移到下方，保持标题、作者和时间同排。
+
+导出时间记录开始导出时的本地时间，显示为 `YYYY-MM-DD HH:mm`；悬停可查看秒和 UTC 偏移。HTML 内保存固定时间，重新打开、分享或换到另一时区不会变成查看时的时间。这些选项用于本次导出，重新打开导出窗口后恢复默认值。打印仍沿用已有规则隐藏工具栏。
 
 ## 搜索导出的 HTML
 
@@ -66,7 +74,7 @@ HTML 初始适应全图。点击 **100%** 查看原始 CSS 像素大小；拖动
 
 颜色尽量保存在当前浏览器中，按每份导出和文件地址隔离。浏览器禁止存储时仍可换色，浮层提示“仅本次打开有效”；直接打开本地 HTML 时的记忆能力取决于浏览器。偏好不写回 HTML：移动文件、更换浏览器或清理浏览器数据后不保证保留，分享给别人时仍从导出原色开始。旧 HTML 需要重新导出。
 
-## v0.5.0 支持范围
+## v1.0.0 支持范围
 
 | 内容 | 行为 |
 | --- | --- |
@@ -108,6 +116,7 @@ pnpm test:search
 pnpm test:reader
 pnpm test:badges
 pnpm test:background
+pnpm test:metadata
 pnpm deploy:dev "/path/to/development-vault"
 ```
 
@@ -120,6 +129,8 @@ pnpm deploy:dev "/path/to/development-vault"
 代码职责：`canvas.ts` 校验与几何计算，`runtime.ts` 当前视图及原生路径适配，`render.ts` 正文渲染，`styles.ts` 样式快照和静态清理，`assets.ts` 图片内嵌，`export.ts` 组装与保存，`viewer-html.ts` 阅读器工具栏，`viewer.ts` 浏览器阅读与搜索交互。`pnpm test:search` 使用本机 Edge，独立生成测试 HTML，不依赖正在运行的 Obsidian；可用 `EDGE_PATH` 指定浏览器。
 
 `pnpm test:background` 验证颜色、记忆与降级、键盘 / 触屏、打印和真实冻结内容的兼容性。浏览器阅读器没有 Obsidian `App`，其 ESLint 配置仅为该文件允许原生 `localStorage`；插件本体继续使用官方限制。
+
+`pnpm test:metadata` 验证真实导出窗口逻辑与导出组装器的数据传递、失败重试、可选字段、特殊字符、固定时间和标题栏响应式布局；Obsidian 控件使用最小测试适配器，不能替代应用内现场验收。
 
 详细验收结果与复现流程见 [TESTING.md](docs/TESTING.md)，原始设计见 [DESIGN.zh-CN.md](docs/DESIGN.zh-CN.md)。GitHub 上传及社区提交流程见英文[发布指南](docs/RELEASING.md)。
 

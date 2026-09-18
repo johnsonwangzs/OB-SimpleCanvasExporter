@@ -6,12 +6,14 @@ import { Renderer, type RenderedCard } from './render';
 import { startViewer } from './viewer';
 import { viewerToolbar } from './viewer-html';
 import { type Strings } from './i18n';
+import { exportMetadata, type ExportOptions } from './metadata';
 
 export interface ExportResult { html:string; warnings:string[]; cards:number; connections:number; nativePaths:number; elapsedMs:number; metrics:{id:string;scrollHeight:number;clientHeight:number}[] }
 interface EdgeRecord { edge:CanvasEdge; geometry:EdgeGeometry; nativeHTML:string|undefined; bounds:Bounds }
-export async function exportCanvas(app:App,snap:Snapshot,s:Strings,signal:AbortSignal,progress:(done:number,total:number)=>void=()=>{}):Promise<ExportResult> {
+export async function exportCanvas(app:App,snap:Snapshot,s:Strings,signal:AbortSignal,progress:(done:number,total:number)=>void=()=>{},options:ExportOptions={}):Promise<ExportResult> {
   const started=performance.now(),warnings=new Set(snap.data.warnings),bank=new StyleBank();
   signal.throwIfAborted();
+  const metadata=exportMetadata(snap.file.basename,options);
   const renderer=new Renderer(app,snap,bank,signal,warnings);
   try {
     const nodes=new Map(snap.data.nodes.map(n=>[n.id,n]));
@@ -42,13 +44,13 @@ export async function exportCanvas(app:App,snap:Snapshot,s:Strings,signal:AbortS
     const bodyClass=bank.add(theme(snap));
     const nodeHTML=cards.map((c,i)=>`<article class="sce-card ${c.frameClass}" data-node-id="${esc(c.node.id)}" data-node-type="${esc(c.node.type)}" style="left:${c.node.x+dx}px;top:${c.node.y+dy}px;width:${c.node.width}px;height:${c.node.height}px;z-index:${i+2}">${c.html}</article>`).join('\n');
     const labels=records.filter(r=>r.edge.label).map(r=>`<div class="sce-edge-label" data-edge-label="${esc(r.edge.id)}" data-from-node="${esc(r.edge.fromNode)}" data-to-node="${esc(r.edge.toNode)}" style="left:${r.geometry.center.x+dx}px;top:${r.geometry.center.y+dy}px;z-index:${cards.length+3}">${esc(r.edge.label!)}</div>`).join('');
-    const title=snap.file.basename;
+    const title=metadata.title;
     const html=`<!doctype html>
 <html lang="${s.export==='导出'?'zh-CN':'en'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src data:; base-uri 'none'; form-action 'none'">
-<meta name="generator" content="Simple Canvas Exporter 0.5.0"><title>${esc(title)}</title>
+<meta name="generator" content="Simple Canvas Exporter 1.0.0"><title>${esc(title)}</title>
 <style>${viewerCSS}\n${bank.css()}</style></head><body class="${bodyClass}" data-sce-export-id="${snap.document.defaultView!.crypto.randomUUID()}">
-${viewerToolbar(s,title,cards.length,records.length)}
+${viewerToolbar(s,title,cards.length,records.length,metadata)}
 <main class="sce-viewport" tabindex="0" aria-label="${esc(title)}"><div class="sce-scene" data-width="${width}" data-height="${height}" data-origin-x="${dx}" data-origin-y="${dy}" style="width:${width}px;height:${height}px">
 <svg class="sce-edges" xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" aria-hidden="true"><g transform="translate(${dx} ${dy})">${edgeHTML.join('\n')}</g></svg>
 ${nodeHTML}${labels}${cards.length?'':`<div class="sce-empty">${esc(s.empty)}</div>`}</div></main><div class="sce-help">${esc(s.help)}</div>

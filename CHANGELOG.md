@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0
+
+- Add an editable page title to the export dialog, defaulting to the Canvas name. Use the chosen title in the HTML header, browser tab, and accessible Canvas name while keeping the output path independent.
+- Add independent, optional author and export-time controls. Display selected metadata to the right of the title on one line, with responsive ellipsis for long text and wrapped viewer controls on narrow screens.
+- Capture export-start local time once, including an ISO timestamp and a detailed UTC-offset tooltip. Reopening or sharing the HTML preserves the original displayed time.
+- Freeze export options while running, restore controls after failures, omit disabled or blank author data, and safely escape user-entered metadata. Add unit and browser coverage for the dialog-to-export flow, retries, time zones, responsive headers, and existing viewer interactions.
+
 ## 0.5.0
 
 - Add a Background popup to exported HTML with six solid presets, a native color picker, validated 3-/6-digit HEX input, live preview, and restoration of the exact export color.

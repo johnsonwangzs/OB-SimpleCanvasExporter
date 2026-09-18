@@ -11,7 +11,7 @@ Export the current Obsidian Canvas to a single HTML file. Cards retain their pos
 1. Open a Canvas in Obsidian.
 2. Press `Ctrl+P` to open the command palette and search for `Simple Canvas Exporter`.
 3. Run **Export current Canvas to HTML**. The command is localized when Obsidian is set to Chinese.
-4. Choose an output path within your vault and click **Export**. By default, the HTML file is saved next to the Canvas. Existing files are preserved: subsequent exports receive numbered names such as `name (2).html`.
+4. Choose an output path within your vault, optionally edit the page title or enable author/export time, and click **Export**. By default, the HTML file is saved next to the Canvas. Existing files are preserved: subsequent exports receive numbered names such as `name (2).html`.
 5. Click **Open in browser**, or open the generated HTML file directly in your browser.
 
 ![Export](assets/1.png)
@@ -21,6 +21,14 @@ If Windows asks you to choose an application for HTML files, select a browser su
 The export captures the current view, including changes that have not yet been saved to disk. It includes the entire Canvas, including cards outside the visible area. Each card starts at the top of its content.
 
 The HTML viewer initially fits the entire Canvas into the window. Click **100%** to view cards at their original CSS pixel dimensions. Drag the background to pan, scroll inside a card to read its contents, and use `Ctrl+wheel` to zoom. Cards do not reflow when the browser window changes size or expand to fit their contents.
+
+## Set the title, author, and export time
+
+Version 1.0.0 adds **Page title** to the export dialog. It defaults to the Canvas name and falls back to that name when blank. The title is used in the HTML header, browser tab, and accessible Canvas name; the output filename comes from **Save to**.
+
+**Show author** and **Show export time** are independent, initially disabled options. Enable the author option and enter a name; a blank author is omitted. Selected metadata appears to the right of the title on the same line, in title/author/time order. Long titles and authors use ellipsis with the complete text available on hover. Narrow screens move controls below while keeping this header on one line.
+
+The timestamp captures the local time when export starts, displayed as `YYYY-MM-DD HH:mm`, with seconds and UTC offset on hover. It remains fixed when reopening, sharing, or viewing in another time zone. These options apply to the current export and reset when the dialog is opened again. Printing continues to hide the toolbar.
 
 ## Search exported HTML
 
@@ -70,7 +78,7 @@ Only the Canvas background changes. Cards, text, connections, controls, and the 
 
 The viewer tries to remember the color in the current browser, separately for each export and file address. If storage is unavailable, colors still work for the current visit and the popup explains this. Persistence for directly opened local HTML depends on the browser. Preferences do not modify the HTML: moving the file, using another browser, or clearing browser data may lose them, and sharing the file retains its original color. Re-export older HTML to gain this feature.
 
-## Supported features in v0.5.0
+## Supported features in v1.0.0
 
 | Content | Export behavior |
 | --- | --- |
@@ -124,6 +132,7 @@ pnpm test:search
 pnpm test:reader
 pnpm test:badges
 pnpm test:background
+pnpm test:metadata
 ```
 
 To deploy the built plugin to a development vault:
@@ -136,7 +145,7 @@ pnpm deploy:dev "/path/to/development-vault"
 
 `pnpm check` runs the official Obsidian ESLint rules with zero warnings allowed, unit tests, the TypeScript production build, and release metadata checks. `pnpm release` runs these checks and copies the runtime files and license to `release/simple-canvas-exporter/`. The QA module lives in `tests/` and is excluded from production builds.
 
-`pnpm test:search` generates its own offline browser fixtures and uses the installed Edge browser (override with `EDGE_PATH`). It does not require Obsidian to be running. It also checks previously captured default/Prism exports when present in `qa/`. `pnpm test:background` checks color controls, storage and failure handling, keyboard/touch input, printing, and captured content. The standalone viewer uses standard browser DOM APIs: its ESLint configuration permits the native DOM helpers and `localStorage` needed outside Obsidian, while preserving the plugin's other restrictions.
+`pnpm test:search` generates its own offline browser fixtures and uses the installed Edge browser (override with `EDGE_PATH`). It does not require Obsidian to be running. It also checks previously captured default/Prism exports when present in `qa/`. `pnpm test:background` checks color controls, storage and failure handling, keyboard/touch input, printing, and captured content. `pnpm test:metadata` checks the actual export dialog logic and assembler with a minimal Obsidian UI adapter, including retries, optional fields, escaping, frozen timestamps, and responsive headers; it does not replace live Obsidian testing. The standalone viewer uses standard browser DOM APIs: its ESLint configuration permits the native DOM helpers and `localStorage` needed outside Obsidian, while preserving the plugin's other restrictions.
 
 Pass the development vault path explicitly; the project does not configure a default vault. You can also invoke `node scripts/deploy.mjs "/path/to/development-vault"` directly.
 

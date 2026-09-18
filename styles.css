@@ -3,7 +3,14 @@
 .sce-export-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 .sce-export-progress { width: 100%; }
 .sce-export-modal [hidden] { display: none !important; }
-.sce-export-modal .sce-export-path { width: 100%; }
+.sce-export-modal .sce-export-path, .sce-export-modal .sce-export-title { width: 100%; }
+.sce-export-modal .setting-item-info, .sce-export-modal .setting-item-control { min-width: 0; }
+.sce-export-modal .setting-item-control { flex-wrap: wrap; }
+.sce-export-modal .sce-export-author { width: 170px; max-width: 100%; }
+@media (max-width: 520px) {
+  .sce-export-modal .setting-item { align-items: stretch; flex-direction: column; gap: 8px; }
+  .sce-export-modal .setting-item-control { justify-content: flex-start; }
+}
 .sce-export-network-hint { color: var(--text-muted); font-size: var(--font-ui-small); }
 
 /* Connected offscreen DOM lets Obsidian render and measure real Canvas styles. */

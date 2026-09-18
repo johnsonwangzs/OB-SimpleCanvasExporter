@@ -1,6 +1,6 @@
 {
   "name": "simple-canvas-exporter",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "private": true,
   "license": "MIT",
   "description": "Export Obsidian Canvas to self-contained, scrollable HTML.",
@@ -17,7 +17,8 @@
     "check": "pnpm lint && pnpm test && pnpm build && node scripts/check-release.mjs",
     "release": "pnpm check && node scripts/package-release.mjs",
     "test:badges": "node scripts/badge-browser-test.mjs",
-    "test:background": "node scripts/background-browser-test.mjs"
+    "test:background": "node scripts/background-browser-test.mjs",
+    "test:metadata": "node scripts/metadata-browser-test.mjs"
   },
   "devDependencies": {
     "esbuild": "0.25.12",
