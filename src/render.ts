@@ -1,11 +1,12 @@
 import { Component, MarkdownRenderer, parseLinktext, type App } from 'obsidian';
-import { type CanvasNode, escapeHTML } from './canvas';
+import { type CanvasNode, type Bounds, escapeHTML } from './canvas';
 import { matchingNode, type Snapshot } from './runtime';
 import { StyleBank, computed, freezeTree, spacer, ensureBadges, resolveColor } from './styles';
 import { Assets } from './assets';
 import { asError, withTimeout } from './async';
+import { renderGroup } from './groups';
 
-export interface RenderedCard { node:CanvasNode; html:string; frameClass:string; scrollHeight:number; clientHeight:number }
+export interface RenderedCard { node:CanvasNode; html:string; frameClass:string; scrollHeight:number; clientHeight:number; visualBounds?:Bounds }
 export class Renderer {
   readonly stage:HTMLElement;
   private readonly component=new Component();
@@ -20,6 +21,7 @@ export class Renderer {
   async card(n:CanvasNode,index:number):Promise<RenderedCard> {
     this.signal.throwIfAborted();
     const doc=this.snap.document, source=matchingNode(this.snap.native,n);
+    if(n.type==='group')return {node:n,...renderGroup(n,source,this.stage,this.bank),frameClass:'',scrollHeight:0,clientHeight:0};
     const host=(source?.cloneNode(false)??doc.defaultView!.createDiv()) as HTMLElement;
     host.classList.add('canvas-node','sce-render-node');host.classList.remove('is-selected','is-focused','is-editing','is-dragging');
     if(n.color){const color=resolveColor(n.color,this.stage);if(color){host.classList.add('is-themed');host.style.setProperty('--canvas-color',color);}}

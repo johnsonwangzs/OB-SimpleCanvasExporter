@@ -78,7 +78,13 @@ Only the Canvas background changes. Cards, text, connections, controls, and the 
 
 The viewer tries to remember the color in the current browser, separately for each export and file address. If storage is unavailable, colors still work for the current visit and the popup explains this. Persistence for directly opened local HTML depends on the browser. Preferences do not modify the HTML: moving the file, using another browser, or clearing browser data may lose them, and sharing the file retains its original color. Re-export older HTML to gain this feature.
 
-## Supported features in v1.0.0
+## Canvas groups
+
+Version 1.1.0 exports group frames and labels at their original Canvas coordinates and dimensions, including border colors, widths, rounded corners, and static background tints. Nested groups remain behind cards and connections. Empty space inside a group can still be dragged to pan the Canvas.
+
+Groups are static: collapse/expand controls and group background images are not exported. Group labels do not participate in text-card search, Badge filtering, or the reader. The toolbar counts groups separately from cards. Re-export older HTML files to include groups.
+
+## Supported features in v1.1.0
 
 | Content | Export behavior |
 | --- | --- |
@@ -93,7 +99,7 @@ The viewer tries to remember the color in the current browser, separately for ea
 
 ## Limitations
 
-This release is intended for desktop Obsidian. File cards, web cards, and groups retain their positions but display placeholders. Embedded notes, PDFs, remote images, and other unsupported resources are replaced with placeholders and reported in the export notes.
+This release is intended for desktop Obsidian. File cards and web cards retain their positions but display placeholders. Embedded notes, PDFs, remote images, and other unsupported resources are replaced with placeholders and reported in the export notes.
 
 Dynamic plugin components, complex SVG content, and theme decorations that rely on pseudo-elements may not be reproduced completely. Exported files do not execute scripts from notes or run Obsidian plugins.
 

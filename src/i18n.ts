@@ -1,5 +1,6 @@
 import { getLanguage } from 'obsidian';
 export const EN={
+  groups:'groups',
   command:'Export current Canvas to HTML',title:'Export Canvas to HTML',path:'Save to',pathHint:'Path within this vault. Existing files receive a numbered copy.',
   exportTitle:'Page title',exportTitleHint:'Shown in the page and browser tab. Leave blank to use the Canvas name.',author:'Author',showAuthor:'Show author',authorHint:'Shown beside the title when enabled. Leave blank to omit.',authorPlaceholder:'Author name',exportTime:'Export time',showTime:'Show export time',exportTimeHint:'Local time when export starts; stays unchanged when the HTML is reopened.',
   export:'Export',cancel:'Cancel',close:'Close',working:'Rendering cards…',saving:'Saving HTML…',done:'HTML exported',failed:'Export failed',
@@ -16,6 +17,7 @@ export const EN={
 };
 export type Strings=typeof EN;
 export const ZH:Strings={
+  groups:'个分组',
   command:'将当前 Canvas 导出为 HTML',title:'将 Canvas 导出为 HTML',path:'保存位置',pathHint:'填写 vault 内的路径。已有同名文件时自动保存编号副本。',
   exportTitle:'页面标题',exportTitleHint:'用于页面顶部和浏览器标签；留空使用 Canvas 名称。',author:'作者',showAuthor:'显示作者',authorHint:'勾选后显示在标题右侧；作者留空则不显示。',authorPlaceholder:'作者姓名',exportTime:'导出时间',showTime:'显示导出时间',exportTimeHint:'记录开始导出时的本地时间；重新打开 HTML 时保持不变。',
   export:'导出',cancel:'取消',close:'关闭',working:'正在渲染卡片…',saving:'正在保存 HTML…',done:'HTML 已导出',failed:'导出失败',

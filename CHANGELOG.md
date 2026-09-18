@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+- Export Canvas groups as static frames and labels, preserving their positions, dimensions, border styles, corner radii, and background tints from the current theme. Reconstruct native group elements when their live DOM is unavailable.
+- Preserve nested group layering beneath connections and cards, include labels in scene bounds, and retain panning through empty group interiors. Omit collapse/expand controls and keep groups separate from text search, Badge filtering, and reader controls.
+- Count groups separately in the toolbar. Add native Obsidian measurements and offline browser checks using the three Develop sample groups, with color, nesting, escaping, fallback rendering, print, and group-only cases.
+
 ## 1.0.0
 
 - Add an editable page title to the export dialog, defaulting to the Canvas name. Use the chosen title in the HTML header, browser tab, and accessible Canvas name while keeping the output path independent.

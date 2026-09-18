@@ -1,5 +1,28 @@
 # 验收记录
 
+## v1.1.0：Canvas 分组静态显示
+
+日期：2026-09-18。Windows、Obsidian 1.13.7、Prism 3.8.0、Advanced Canvas 7.0.0、Simple Badge 1.0.0；浏览器为本机 Edge。
+
+- 使用 Develop vault 当前 `example-canvas.canvas` 在实际 Obsidian 中导出：53 张文本卡片、3 个分组、52 条原生连线，无导出警告。三个组名为 `test-group-1/2/3`，其中 1 嵌套在 2 内。
+- 逐项对比原生 100% 临时测量 DOM 与导出 HTML：分组坐标、宽高、四边颜色、边框粗细和样式、圆角、底色、阴影、标签字体样式与位置一致。标签宽度保留自然排版，避免浏览器替换 Obsidian 内置字体后短名称被截断；字体仍不打包。
+- 截图核验全图与嵌套分组细节。分组在连线和文本卡片下方，原生折叠按钮不进入 HTML，分组内空白可拖动画布和缩放。搜索只匹配文本卡片，组名不产生阅读按钮或筛选计数。
+- 补充真实 Obsidian 导出：原生节点不可用、六种预设色、自定义 HEX、逆序嵌套、长标签、空标签、含 HTML 字符的标签、以分组为端点的连线，以及仅含分组的 Canvas。验证无脚本静态显示、打印及背景颜色切换。
+- 21 项单元测试、lint、类型检查、版本检查通过；标题/作者/时间、搜索、阅读面板、Badge、背景专项回归通过。搜索/Badge/背景旧基准使用原有 25 卡片样例；阅读面板也验证了当前 53 卡片导出。旧脚本针对可选实测文件中的固定历史计数不适用于已扩充样例，当前样例由分组专项独立验证。
+- 原始 Canvas 测试前后 SHA-256 不变：`736E8F45863816EB2D24A3F4C65BE3C21E5DA631BAE8C050E0753F4F7B8CF72A`。
+- 最终已部署并重载正式 1.1.0 构建，通过正常导出对话框生成 `D:\Notes\Develop\example-canvas-1.1.0.html`，无导出警告。该正式产物重新通过分组浏览器专项；安装包为 `release/simple-canvas-exporter-1.1.0.zip`。
+
+复现原生采集（先在 Develop 打开该 Canvas）：
+
+```powershell
+node esbuild.config.mjs --qa-groups
+node scripts/deploy.mjs D:\Notes\Develop
+# 在 Obsidian 设置中停用、启用 Simple Canvas Exporter，等待采集完成
+node scripts/group-browser-test.mjs D:\Notes\Develop
+```
+
+已有采集时运行 `pnpm test:groups`。结果和截图在 `qa/groups/`。完成后重新正式构建、部署并重载插件；QA 代码不会进入发布包。
+
 ## v1.0.0：导出标题、作者和时间
 
 日期：2026-09-18。Windows、本机 Edge，离线浏览器验收。本轮未部署到开发 vault，也未在运行中的 Obsidian 内做现场导出验收。

@@ -112,6 +112,7 @@ export function resolveColor(color:string|undefined,host:HTMLElement):string|und
 }
 
 export const viewerCSS = `
+.sce-groups{position:absolute;inset:0;z-index:0;pointer-events:none}.sce-group{position:absolute;overflow:visible;pointer-events:none}.sce-group-frame{position:absolute;inset:0;width:100%;height:100%}.sce-group-label{pointer-events:none}.sce-scene>.sce-edges{z-index:1}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body{font:14px system-ui,sans-serif;background:var(--sce-bg);color:var(--sce-text)}
 .sce-toolbar{background:var(--sce-bg);border-bottom:1px solid var(--sce-border);position:relative;z-index:20}.sce-toolbar-main{min-height:58px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:10px 18px}
 .sce-title-line{display:flex;align-items:baseline;gap:12px;flex:1 1 300px;min-width:0;max-width:100%}.sce-title{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto;min-width:48px}.sce-author{font-size:12px;max-width:min(160px,28%);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sce-export-time{font-size:12px;white-space:nowrap;flex:none;font-variant-numeric:tabular-nums}.sce-count{font-size:12px;opacity:.65;white-space:nowrap}

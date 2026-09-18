@@ -15,7 +15,7 @@ export function snapshot(view: View): Snapshot {
 export function matchingNode(native:NativeCanvas|undefined,n:CanvasNode): HTMLElement | undefined {
   try {
     const source=native?.nodes?.get(n.id), data=source?.getData?.() as CanvasNode | undefined;
-    return data && ['x','y','width','height','text','color','type'].every(k=>data[k as keyof CanvasNode]===n[k as keyof CanvasNode]) ? source?.nodeEl : undefined;
+    return data && ['x','y','width','height','text','color','type','label'].every(k=>data[k as keyof CanvasNode]===n[k as keyof CanvasNode]) ? source?.nodeEl : undefined;
   } catch { return undefined; }
 }
 export interface NativePath { path:string; ends:SVGElement|undefined; line:SVGElement; group:SVGElement; bounds:Bounds }
