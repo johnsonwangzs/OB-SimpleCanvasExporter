@@ -6,4 +6,5 @@ await build({entryPoints:['src/canvas.ts'],outfile:'qa/core.mjs',bundle:true,for
 await build({entryPoints:['src/async.ts'],outfile:'qa/async.mjs',bundle:true,format:'esm',platform:'node'});
 await build({entryPoints:['src/metadata.ts'],outfile:'qa/metadata.mjs',bundle:true,format:'esm',platform:'node'});
 await build({entryPoints:['src/watermark.ts'],outfile:'qa/watermark.mjs',bundle:true,format:'esm',platform:'node'});
-const result=spawnSync(process.execPath,['--test','tests/core.test.mjs','tests/async.test.mjs','tests/metadata.test.mjs','tests/watermark.test.mjs'],{stdio:'inherit'});process.exitCode=result.status??1;
+await build({entryPoints:['src/preferences.ts'],outfile:'qa/preferences.mjs',bundle:true,format:'esm',platform:'node'});
+const result=spawnSync(process.execPath,['--test','tests/core.test.mjs','tests/async.test.mjs','tests/metadata.test.mjs','tests/watermark.test.mjs','tests/preferences.test.mjs'],{stdio:'inherit'});process.exitCode=result.status??1;

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1
+
+- Add explicit **Save as defaults** and **Clear saved defaults** actions to the export dialog. Remember author, time-display, and watermark preferences per vault across plugin reloads, while deriving titles, paths, and timestamps from each new export.
+- Keep temporary edits and export outcomes separate from saved defaults. Clearing defaults preserves the current form; disabled author and watermark text stays out of exported HTML.
+- Validate stored preferences, report read/write failures, and serialize writes so reopening during a save loads the completed state. Add persistence, lifecycle, dialog, and bilingual responsive-layout regression coverage.
+
 ## 1.2.0
 
 - Add optional diagonal background watermarks to HTML exports, with custom text, 4–16% opacity (8% by default), and a live preview in the export dialog. Validate up to 40 Unicode characters and preserve settings in each exported file.

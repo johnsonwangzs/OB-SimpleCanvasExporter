@@ -1,7 +1,7 @@
 {
   "id": "simple-canvas-exporter",
   "name": "Simple Canvas Exporter",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "minAppVersion": "1.13.7",
   "description": "Export Canvas as standalone HTML with original layouts, arrows, styled content, and scrollable cards.",
   "author": "Meowdichlorian",

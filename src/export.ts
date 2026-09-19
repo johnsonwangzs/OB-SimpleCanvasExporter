@@ -58,7 +58,7 @@ export async function exportCanvas(app:App,snap:Snapshot,s:Strings,signal:AbortS
     const html=`<!doctype html>
 <html lang="${s.export==='导出'?'zh-CN':'en'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src data:; base-uri 'none'; form-action 'none'">
-<meta name="generator" content="Simple Canvas Exporter 1.2.0"><title>${esc(title)}</title>
+<meta name="generator" content="Simple Canvas Exporter 1.2.1"><title>${esc(title)}</title>
 <style>${viewerCSS}\n${bank.css()}</style></head><body class="${bodyClass}" data-sce-export-id="${snap.document.defaultView!.crypto.randomUUID()}">
 ${viewerToolbar(s,title,contentCards.length,records.length,metadata,groups.length)}
 <main class="sce-viewport${watermark?' sce-watermarked':''}"${watermark?` style="--sce-static-width:${width}px;--sce-static-height:${height}px"`:''} tabindex="0" aria-label="${esc(title)}">${watermarkHTML}<div class="sce-scene" data-width="${width}" data-height="${height}" data-origin-x="${dx}" data-origin-y="${dy}" style="width:${width}px;height:${height}px">

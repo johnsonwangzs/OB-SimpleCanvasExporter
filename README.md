@@ -28,7 +28,7 @@ Version 1.0.0 adds **Page title** to the export dialog. It defaults to the Canva
 
 **Show author** and **Show export time** are independent, initially disabled options. Enable the author option and enter a name; a blank author is omitted. Selected metadata appears to the right of the title on the same line, in title/author/time order. Long titles and authors use ellipsis with the complete text available on hover. Narrow screens move controls below while keeping this header on one line.
 
-The timestamp captures the local time when export starts, displayed as `YYYY-MM-DD HH:mm`, with seconds and UTC offset on hover. It remains fixed when reopening, sharing, or viewing in another time zone. These options apply to the current export and reset when the dialog is opened again. Printing continues to hide the toolbar.
+The timestamp captures the local time when export starts, displayed as `YYYY-MM-DD HH:mm`, with seconds and UTC offset on hover. It remains fixed when reopening, sharing, or viewing in another time zone. These options apply to the current export; since 1.2.1, author and time-display preferences can be explicitly saved for future dialogs. Printing continues to hide the toolbar.
 
 ## Add a background watermark
 
@@ -36,7 +36,18 @@ Version 1.2.0 adds an optional **Background watermark** in the export dialog. En
 
 Watermarks use 24px system text at a 30° angle, with staggered tiles and extra spacing for long text. Their size stays constant during Canvas pan/zoom, and their ink adapts to the selected background. They sit below groups, connections, and cards: opaque surfaces hide them, while transparent surfaces reveal them. Selection, scrolling, search, badges, and the reader keep their existing behavior.
 
-Each HTML file includes its watermark for offline and no-script viewing. Printing retains it across the complete unscaled scene. There is no watermark editor in the exported viewer; reopening the export dialog starts with watermarks disabled. Existing HTML must be exported again. Watermarks communicate attribution or usage terms; recipients can still edit the HTML or capture cards without the background.
+Each HTML file includes its watermark for offline and no-script viewing. Printing retains it across the complete unscaled scene. There is no watermark editor in the exported viewer. Reopening the export dialog restores saved preferences, or starts with watermarks disabled if none were saved. Existing HTML must be exported again. Watermarks communicate attribution or usage terms; recipients can still edit the HTML or capture cards without the background.
+
+## Remember export preferences
+
+Version 1.2.1 adds **Save as defaults** and **Clear saved defaults** to the export dialog. Save your author, time-display toggle, and watermark settings to fill them in when opening any Canvas export dialog in this vault, including after restarting Obsidian. The title and output path still follow the current Canvas, and each export gets a fresh timestamp.
+
+- Only **Save as defaults** updates preferences. Temporary edits, exports, failures, and cancellation do not overwrite them. Saving and then cancelling keeps the saved defaults.
+- **Clear saved defaults** affects the next dialog; current fields remain unchanged. Without saved preferences, author, time display, and watermarks start disabled.
+- Saved author and watermark text is retained even when disabled, for reuse later. Disabled values are omitted from exported HTML.
+- Read or write failures are reported without preventing export with the current fields. Enabled watermarks still require valid, non-empty text within the existing length limit.
+
+Obsidian stores preferences in the plugin's `data.json` within this vault. Vaults keep separate defaults; tools that sync plugin configuration may sync that file. The plugin adds no network access. Background-color preferences in exported browser pages remain independent.
 
 ## Search exported HTML
 
@@ -92,7 +103,7 @@ Version 1.1.0 exports group frames and labels at their original Canvas coordinat
 
 Groups are static: collapse/expand controls and group background images are not exported. Group labels do not participate in text-card search, Badge filtering, or the reader. The toolbar counts groups separately from cards. Re-export older HTML files to include groups.
 
-## Supported features in v1.2.0
+## Supported features in v1.2.1
 
 | Content | Export behavior |
 | --- | --- |
@@ -148,6 +159,7 @@ pnpm test:badges
 pnpm test:background
 pnpm test:metadata
 pnpm test:watermark
+pnpm test:preferences
 ```
 
 To deploy the built plugin to a development vault:
@@ -163,6 +175,8 @@ pnpm deploy:dev "/path/to/development-vault"
 `pnpm test:search` generates its own offline browser fixtures and uses the installed Edge browser (override with `EDGE_PATH`). It does not require Obsidian to be running. It also checks previously captured default/Prism exports when present in `qa/`. `pnpm test:background` checks color controls, storage and failure handling, keyboard/touch input, printing, and captured content. `pnpm test:metadata` checks the actual export dialog logic and assembler with a minimal Obsidian UI adapter, including retries, optional fields, escaping, frozen timestamps, and responsive headers; it does not replace live Obsidian testing. The standalone viewer uses standard browser DOM APIs: its ESLint configuration permits the native DOM helpers and `localStorage` needed outside Obsidian, while preserving the plugin's other restrictions.
 
 Pass the development vault path explicitly; the project does not configure a default vault. You can also invoke `node scripts/deploy.mjs "/path/to/development-vault"` directly.
+
+`pnpm test:preferences` checks explicit persistence, reopening, clearing, failure recovery, writes after dialog closure, inactive-text omission, and bilingual narrow layouts through the plugin's persistence interface and actual dialog code. See the [preference design](docs/EXPORT-PREFERENCES-DESIGN.zh-CN.md) for the interaction rules.
 
 The repository keeps plugin code in `src/`, test cases and fixtures in `tests/`, development scripts in `scripts/`, supporting documentation in `docs/`, and README images in `assets/`. Installed dependencies, the package cache, generated `main.js`, QA output in `qa/`, and release packages in `release/` are excluded from Git. QA output can be regenerated using the steps in [the testing guide](docs/TESTING.md).
 

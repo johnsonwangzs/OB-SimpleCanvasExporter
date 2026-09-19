@@ -27,7 +27,7 @@ async function modal(page,language='zh'){
       await new Promise(resolve=>{window.pendingSave=resolve;});if(window.failSave)throw Error('Simulated write failure');window.saved.push({path,html});
     }}};
     const view=new wmTest.TextFileView();view.getViewType=()=> 'canvas';view.getViewData=()=>JSON.stringify({nodes:[],edges:[]});view.file={path:'sample.canvas',basename:'sample'};view.containerEl=document.body;
-    new wmTest.ExportModal(app,view,()=>{}).open();
+    new wmTest.ExportModal(app,view,()=>{},{initial:{defaults:null},save:async defaults=>({defaults})}).open();
   },language);
 }
 async function finish(page){await page.waitForFunction(()=>typeof window.pendingSave==='function');await page.evaluate(()=>{window.pendingSave();window.pendingSave=undefined;});}
@@ -56,7 +56,7 @@ try{
   await page.goto(url('production'));await ready(page);
   assert.equal(await page.locator('.sce-watermark text').first().textContent(),'项目资料 · 仅供交流');assert.equal(await page.locator('.sce-watermark g').getAttribute('fill-opacity'),'0.12');
   assert.equal(await page.locator('.sce-watermark').getAttribute('aria-hidden'),'true');
-  assert.equal(await page.locator('meta[name=generator]').getAttribute('content'),'Simple Canvas Exporter 1.2.0');
+  assert.equal(await page.locator('meta[name=generator]').getAttribute('content'),`Simple Canvas Exporter ${JSON.parse(await readFile('manifest.json','utf8')).version}`);
   summary.dialogValidationPreviewSnapshotAndExport=true;
 
   await modal(page,'en');await page.getByRole('switch',{name:'Background watermark',exact:true}).click();await page.locator('.sce-watermark-text').fill('Private draft');

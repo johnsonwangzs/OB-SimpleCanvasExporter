@@ -1,5 +1,18 @@
 # 验收记录
 
+## v1.2.1：可选记住导出偏好
+
+日期：2026-09-19。Windows、Obsidian 1.13.7、Prism 3.8.0、Advanced Canvas 7.0.0、Simple Badge 1.0.0；浏览器使用本机 Edge。
+
+- `pnpm check` 通过官方 Obsidian ESLint（零错误 / 警告）、30 项单元测试、TypeScript 正式构建和 1.2.1 版本一致性检查。新增 6 项偏好单元测试覆盖字段白名单、损坏数据、Unicode、独立副本、vault 隔离、写入队列与失败恢复。
+- `pnpm test:preferences` 使用最小 Obsidian 控件适配器运行真实插件加载、命令和导出窗口代码，验证显式保存、取消后重开、实例重载、临时修改导出、清除保留当前表单、读取和写入失败、关闭期间保存、延迟错误提示、字段锁定和重试。标题、路径和实际时间戳不持久化；关闭的作者和水印文字不进入 HTML。
+- 中英文、深浅主题下检查 900 / 320px 导出窗口布局，无横向溢出，偏好按钮可换行。元数据和水印两个受影响的浏览器专项均通过，包含既有默认主题 / Prism 的 25 卡片及 53 卡片 / 3 分组派生夹具；本轮未修改阅读器实现。
+- 将正式构建部署到 Develop vault，在运行中的 Obsidian 内保存作者、时间显示和水印设置；取消后重开、停用再启用插件后重开，均恢复保存值。新建弹出窗口中的导出对话框同样正确恢复偏好。
+- 从当前 `test-canvas.canvas` 实际导出 60 张文本卡片，无导出警告。离线重新打开 HTML，生成器版本为 1.2.1，作者、固定时间和水印正确；`logits` 搜索命中 19 张 / 22 处，结果导航、阅读面板和背景换色可用。
+- 在真实窗口清除默认设置，当前作者、水印和开关仍保留；再次打开后恢复初始关闭状态，插件数据为 `exportDefaults: null`。验收偏好和 vault 内临时 HTML 已清理，正式构建保持启用。
+
+复现：`pnpm check`、`pnpm test:preferences`、`pnpm test:metadata`、`pnpm test:watermark`。自动化报告和适配器截图位于 `qa/preferences/`；本次真实导出副本为 `qa/preferences/native-export.html`，浏览器冒烟结果为 `qa/preferences/native-summary.json`。正式安装包为 `release/simple-canvas-exporter-1.2.1.zip`，不包含开发 vault 的 `data.json`。
+
 ## v1.2.0：斜向背景水印
 
 日期：2026-09-18。Windows、本机 Edge 153，离线浏览器验收。本轮没有部署到开发 vault，也没有在运行中的 Obsidian 内重新导出。

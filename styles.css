@@ -12,6 +12,10 @@
   .sce-export-modal .setting-item-control { justify-content: flex-start; }
 }
 .sce-export-network-hint { color: var(--text-muted); font-size: var(--font-ui-small); }
+.sce-preferences { margin-top: 16px; border-top: 1px solid var(--background-modifier-border); padding-top: 8px; }
+.sce-preference-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sce-preference-status { color: var(--text-muted); font-size: var(--font-ui-small); overflow-wrap: anywhere; }
+.sce-preference-error { color: var(--text-error); }
 .sce-watermark-text { width: 100%; }
 .sce-watermark-error { color: var(--text-error); font-size: var(--font-ui-small); }
 .sce-watermark-opacity-value { min-width: 3ch; font-variant-numeric: tabular-nums; }

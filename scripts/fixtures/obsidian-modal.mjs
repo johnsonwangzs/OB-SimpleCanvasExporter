@@ -13,11 +13,16 @@ HTMLElement.prototype.addClass=function(...classes){this.classList.add(...classe
 HTMLElement.prototype.empty=function(){this.replaceChildren();};
 export const getLanguage=()=>window.testLanguage??'zh';
 export class Component{load(){}unload(){}}
-export class Plugin{}
+export class Plugin{
+  constructor(app){this.app=app;this.commands=[];}
+  addCommand(command){this.commands.push(command);}
+  async loadData(){return this.app.loadPluginData?.()??null;}
+  async saveData(value){await this.app.savePluginData(value);}
+}
 export class FileSystemAdapter{}
 export class TFile{}
 export class TextFileView{}
-export class Notice{}
+export class Notice{constructor(message){(window.testNotices??=[]).push(message);}}
 export const MarkdownRenderer={};
 export const parseLinktext=path=>({path});
 export class Modal{

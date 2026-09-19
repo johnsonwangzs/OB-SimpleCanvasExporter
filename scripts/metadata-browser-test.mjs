@@ -29,7 +29,7 @@ async function modal(page,{language='zh',fail=false}={}){
       if(window.failSave)throw Error('Simulated write failure');window.saved.push({path,html});return{};
     }}};
     const view=new metadataTest.TextFileView();view.getViewType=()=> 'canvas';view.getViewData=()=>JSON.stringify({nodes:[],edges:[]});view.file={path:'notes/original.canvas',basename:'original'};view.containerEl=document.body;
-    window.exportModal=new metadataTest.ExportModal(app,view,()=>{});window.exportModal.open();
+    window.exportModal=new metadataTest.ExportModal(app,view,()=>{},{initial:{defaults:null},save:async defaults=>({defaults})});window.exportModal.open();
   },{language,fail});
 }
 async function finish(page){await page.waitForFunction(()=>typeof window.pendingSave==='function');await page.evaluate(()=>{const resolve=window.pendingSave;window.pendingSave=undefined;resolve();});}
