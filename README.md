@@ -1,5 +1,7 @@
 # Simple Canvas Exporter
 
+**A demo playground (html page) is represented on https://johnsonwangzs.github.io/LLM-Watermark-Research-Landscape/ , which is a landscape of Large Language Models Watermarking Research. Feel free to play.**
+
 **English** | [简体中文](README.zh-CN.md)
 
 Export the current Obsidian Canvas to a single HTML file. Cards retain their positions and dimensions, while their contents remain selectable, copyable, and independently scrollable. Open the exported file offline in a browser without installing Obsidian or SimpleBadge.
