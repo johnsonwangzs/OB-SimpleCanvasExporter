@@ -1,5 +1,30 @@
 # 验收记录
 
+## v1.3.0：Markdown 脚注
+
+日期：2026-10-15。Windows、Obsidian 1.14.4、Prism 3.8.0，浏览器使用本机 Edge。
+
+- 原生 `MarkdownRenderer` 采集确认脚注正文位于 `section.footnotes`，引用与返回链接使用当前卡片内的 fragment ID。旧清理器会删除整个 section，并将这些链接改为 span。固定样例保存于 `tests/fixtures/footnotes-rendered.html`，仅归一化随机 ID 后缀。
+- `pnpm check` 通过官方 ESLint（零错误 / 警告）、30 项单元测试、类型检查、正式构建和 1.3.0 发布元数据检查。运行包不包含 QA 入口。
+- `pnpm test:footnotes` 验证真实清理函数保留正文、格式及外链，重写引用与返回目标，隔离重复编号，拒绝缺失 / 被移除的目标，并保持原有双链与危险链接处理。离线浏览器验证适应全图 / 100% / 缩小后的双向滚动、重复引用、键盘焦点、阅读副本 ID、搜索计数、窄屏、触屏、折叠目标及禁用脚本的正文保留。
+- 新增 `--qa-footnotes` 应用内测试入口：两张相同编号、含重复引用和多段脚注的卡片通过真实导出组装器验收，无警告。其产物另通过浏览器专项；当前 60 张卡片的 `test-canvas.canvas` 同时完成原生导出，无警告。
+- 搜索、阅读面板、Badge、背景、导出元数据、水印和偏好七个既有浏览器专项全部通过。阅读面板额外验证上述 60 卡片实际产物：`logits` 搜索仍命中 19 张 / 22 处。
+- 部署并启用正式 1.3.0 后，通过正常导出窗口生成 `D:/Notes/Develop/test-canvas-footnotes-1.3.0.html`。离线检查确认生成器版本、60 张卡片，以及用户测试卡片的 2 条脚注 / 3 处引用 / 3 个返回链接；正文和阅读面板跳转、搜索、ID 隔离通过，无浏览器脚本错误或自动网络请求。正式导出前后 Canvas 的 SHA-256 均为 `DCA5DC5C7F6940635371A51E24507C5E254B35B22E801C648A1437DF3C11A212`。
+
+专项报告与截图位于 `qa/footnotes/`。安装文件位于 `release/simple-canvas-exporter/`，ZIP 为 `release/simple-canvas-exporter-1.3.0.zip`。
+
+独立浏览器复现：`pnpm test:footnotes`。重新采集原生结果时，在开发 vault 打开一张 Canvas，执行：
+
+```powershell
+node esbuild.config.mjs --qa-footnotes
+node scripts/deploy.mjs D:/Notes/Develop
+# 在 Obsidian 内停用、启用插件，检查插件目录的 qa-footnotes-result.json。
+node scripts/footnote-browser-test.mjs D:/Notes/Develop/.obsidian/plugins/simple-canvas-exporter/qa-footnotes.html
+# 验收后恢复正式构建、部署并重新启用插件。
+pnpm build
+node scripts/deploy.mjs D:/Notes/Develop
+```
+
 ## v1.2.1：可选记住导出偏好
 
 日期：2026-09-19。Windows、Obsidian 1.13.7、Prism 3.8.0、Advanced Canvas 7.0.0、Simple Badge 1.0.0；浏览器使用本机 Edge。

@@ -479,6 +479,31 @@ export function startViewer(currentLabel='Current',getWatermarkInk?:(background:
       if(el===scroll)break;el=el.parentElement;
     }
   }
+  // Native fragment navigation can scroll transformed scene ancestors. Keep footnotes local.
+  document.addEventListener('click',event=>{
+    const link=(event.target instanceof Element?event.target:null)?.closest<HTMLAnchorElement>('a[data-sce-footnote][href^="#"]');
+    if(!link||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+    const scroll=link.closest<HTMLElement>('.sce-card-scroll,.sce-reader-body');
+    if(!scroll)return;
+    event.preventDefault();
+    const target=document.getElementById(link.getAttribute('href')!.slice(1));
+    if(!(target instanceof HTMLElement)||!scroll.contains(target))return;
+    for(let parent=target.parentElement;parent&&scroll.contains(parent);parent=parent.parentElement){
+      if(parent instanceof HTMLDetailsElement)parent.open=true;
+    }
+    // Reveal the beginning of a long definition, instead of its entire bounding box.
+    const walker=document.createTreeWalker(target,NodeFilter.SHOW_TEXT);
+    let text:Node|null;const range=document.createRange();range.selectNodeContents(target);
+    while((text=walker.nextNode()))if(text.textContent?.trim()){
+      const start=text.textContent.search(/\S/u);
+      range.setStart(text,start);range.setEnd(text,start+1);break;
+    }
+    reveal(scroll,range,scroll.classList.contains('sce-reader-body')?1:scale);
+    const temporary=!target.hasAttribute('tabindex')&&!target.matches('a[href],button,input,select,textarea,summary');
+    if(temporary)target.tabIndex=-1;
+    target.focus({preventScroll:true});
+    if(temporary)target.addEventListener('blur',()=>target.removeAttribute('tabindex'),{once:true});
+  });
   async function navigate(action:string):Promise<void> {
     if(composing)return;
     window.clearTimeout(timer);

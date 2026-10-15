@@ -13,6 +13,7 @@ pnpm test:background
 pnpm test:metadata
 pnpm test:watermark
 pnpm test:preferences
+pnpm test:footnotes
 pnpm release
 ```
 

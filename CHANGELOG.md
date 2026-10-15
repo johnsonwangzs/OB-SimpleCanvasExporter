@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0
+
+- Fix missing Markdown footnote definitions in exported HTML ([#1](https://github.com/johnsonwangzs/OB-SimpleCanvasExporter/issues/1)). Preserve the footnote section, formatting, and external links at the end of each text card.
+- Keep footnote references and return links clickable in both Canvas cards and the reader panel. Remap their targets per card and reader copy, including repeated references, and scroll only the relevant content container without moving or zooming the Canvas.
+- Add coverage using captured Obsidian footnote markup, native export QA, keyboard/touch navigation, narrow readers, search, offline/static reading, and invalid targets. Existing wikilink and unsafe-link handling remains in place.
+
 ## 1.2.1
 
 - Add explicit **Save as defaults** and **Clear saved defaults** actions to the export dialog. Remember author, time-display, and watermark preferences per vault across plugin reloads, while deriving titles, paths, and timestamps from each new export.

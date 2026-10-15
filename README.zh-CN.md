@@ -99,7 +99,13 @@ HTML 初始适应全图。点击 **100%** 查看原始 CSS 像素大小；拖动
 
 分组仅作静态显示，不导出折叠 / 展开的 `+/-` 控件和分组背景图片。组名不参与文本卡片搜索、Badge 筛选或阅读面板；顶部单独统计分组数量。旧 HTML 需要重新导出。
 
-## v1.2.1 支持范围
+## Markdown 脚注
+
+1.3.0 在文本卡片末尾保留 Markdown 脚注正文。点击正文上标跳转到对应脚注，点击脚注后的返回箭头回到相应引用处。同一脚注的重复引用、不同卡片中相同的脚注编号均各自对应。
+
+阅读面板支持相同的跳转，目标始终位于面板内部。脚注跳转保持画布缩放和位置，面板内跳转不改变原卡片的滚动位置。脚注正文参与搜索，离线打开或禁用 JavaScript 时仍可阅读。此版本采用普通脚注列表，不提供弹窗。已有 HTML 需要重新导出才能获得修复。
+
+## v1.3.0 支持范围
 
 | 内容 | 行为 |
 | --- | --- |
@@ -144,6 +150,7 @@ pnpm test:background
 pnpm test:metadata
 pnpm test:watermark
 pnpm test:preferences
+pnpm test:footnotes
 pnpm deploy:dev "/path/to/development-vault"
 ```
 

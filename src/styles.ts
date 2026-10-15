@@ -30,13 +30,14 @@ export class StyleBank {
   css(): string { return Array.from(this.rules,([css,cls])=>`.${cls}{${css}}`).join('\n').replace(/</g,'\\3c '); }
 }
 
-const ALLOWED = new Set('div span p br hr a strong em b i u s del mark small sub sup code pre blockquote h1 h2 h3 h4 h5 h6 ul ol li dl dt dd table thead tbody tfoot tr th td colgroup col center img input details summary svg g path polygon polyline circle ellipse rect line text tspan defs clippath lineargradient radialgradient stop title'.split(' '));
+const ALLOWED = new Set('div section span p br hr a strong em b i u s del mark small sub sup code pre blockquote h1 h2 h3 h4 h5 h6 ul ol li dl dt dd table thead tbody tfoot tr th td colgroup col center img input details summary svg g path polygon polyline circle ellipse rect line text tspan defs clippath lineargradient radialgradient stop title'.split(' '));
 const ATTRS=new Set('alt title colspan rowspan start reversed value type checked disabled open hidden viewBox xmlns d points x y x1 y1 x2 y2 cx cy r rx ry width height offset gradientUnits gradientTransform preserveAspectRatio role aria-label aria-hidden'.toLowerCase().split(' '));
 
 /** Convert rendered content to inert, styled HTML. Geometry and layout offsets never come from note HTML. */
 export function freezeTree(source:Element, bank:StyleBank, prefix:string): HTMLElement {
   const doc=source.ownerDocument;
   const ids=new Map<string,string>();
+  const footnotes:{link:HTMLElement;target:string}[]=[];
   for (const e of [source,...source.querySelectorAll('[id]')]) if (e.id) ids.set(e.id,`${prefix}-${ids.size}`);
   function visit(node:Node): Node | null {
     if (node.nodeType===3) return doc.createTextNode(node.textContent??'');
@@ -44,7 +45,13 @@ export function freezeTree(source:Element, bank:StyleBank, prefix:string): HTMLE
     const el=node as Element, tag=el.tagName.toLowerCase();
     if (!ALLOWED.has(tag) || (tag==='input' && el.getAttribute('type')!=='checkbox')) return null;
     if (el.matches('.markdown-preview-pusher,.copy-code-button,.collapse-indicator,.edit-block-button,.markdown-embed-link,.canvas-node-content-blocker')) return null;
-    const internal=tag==='a' && (el.classList.contains('internal-link') || !/^(https?:|mailto:)/i.test(el.getAttribute('href')??''));
+    const href=el.getAttribute('href')??'';
+    let footnoteTarget:string|undefined;
+    if(tag==='a'&&el.matches('.footnote-link,.footnote-backref')&&href.startsWith('#')){
+      let id=href.slice(1);try{id=decodeURIComponent(id);}catch{/* A literal percent sign can be part of an ID. */}
+      footnoteTarget=ids.get(id);
+    }
+    const internal=tag==='a' && !footnoteTarget && (el.classList.contains('internal-link') || !/^(https?:|mailto:)/i.test(href));
     const svg=el.namespaceURI==='http://www.w3.org/2000/svg';
     const clone=svg ? doc.defaultView!.createSvg(el.tagName as keyof SVGElementTagNameMap) : doc.defaultView!.createEl((internal?'span':tag) as keyof HTMLElementTagNameMap);
     for (const attr of Array.from(el.attributes)) {
@@ -62,7 +69,10 @@ export function freezeTree(source:Element, bank:StyleBank, prefix:string): HTMLE
       }
       clone.setAttribute('src',src);
     }
-    if (tag==='a' && !internal) { clone.setAttribute('href',el.getAttribute('href')!); clone.setAttribute('target','_blank'); clone.setAttribute('rel','noopener noreferrer'); }
+    if(footnoteTarget){
+      clone.setAttribute('href',`#${footnoteTarget}`);clone.setAttribute('data-sce-footnote','');
+      footnotes.push({link:clone as HTMLElement,target:footnoteTarget});
+    } else if (tag==='a' && !internal) { clone.setAttribute('href',href); clone.setAttribute('target','_blank'); clone.setAttribute('rel','noopener noreferrer'); }
     if (tag==='input') { clone.setAttribute('disabled',''); if ((el as HTMLInputElement).checked) clone.setAttribute('checked',''); }
     const extras:Record<string,string>={};
     if (internal) extras.cursor='text';
@@ -79,7 +89,12 @@ export function freezeTree(source:Element, bank:StyleBank, prefix:string): HTMLE
     for (const child of Array.from(el.childNodes)) { const copy=visit(child); if(copy)clone.appendChild(copy); }
     return clone;
   }
-  return visit(source) as HTMLElement;
+  const frozen=visit(source) as HTMLElement;
+  const retainedIds=new Set([frozen,...frozen.querySelectorAll('[id]')].map(el=>el.id));
+  for(const {link,target} of footnotes)if(!retainedIds.has(target)){
+    link.removeAttribute('href');link.removeAttribute('data-sce-footnote');link.classList.add(bank.add({cursor:'text'}));
+  }
+  return frozen;
 }
 
 export function spacer(source:Element,bank:StyleBank,pseudo:'::before'|'::after'): string {

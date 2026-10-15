@@ -103,7 +103,13 @@ Version 1.1.0 exports group frames and labels at their original Canvas coordinat
 
 Groups are static: collapse/expand controls and group background images are not exported. Group labels do not participate in text-card search, Badge filtering, or the reader. The toolbar counts groups separately from cards. Re-export older HTML files to include groups.
 
-## Supported features in v1.2.1
+## Markdown footnotes
+
+Version 1.3.0 preserves Markdown footnote definitions at the end of each text card. Click a footnote reference to scroll to its definition, or a return arrow to go back to the corresponding reference. Repeated references and identical footnote numbers in different cards remain independent.
+
+The reader panel supports the same links within its own content. Footnote navigation keeps the Canvas zoom and position, and scrolling in the panel does not move the source card. Footnote text participates in search and remains available offline or with JavaScript disabled. This version uses ordinary footnote lists; it does not add popovers. Re-export older HTML files to get this fix.
+
+## Supported features in v1.3.0
 
 | Content | Export behavior |
 | --- | --- |
@@ -160,6 +166,7 @@ pnpm test:background
 pnpm test:metadata
 pnpm test:watermark
 pnpm test:preferences
+pnpm test:footnotes
 ```
 
 To deploy the built plugin to a development vault:

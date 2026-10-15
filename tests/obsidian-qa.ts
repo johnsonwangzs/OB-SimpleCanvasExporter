@@ -8,6 +8,7 @@ import { edgeReference, verifyEdgePaint } from './edge-qa';
 
 declare const __QA_EDGES_ONLY__:boolean;
 declare const __QA_GROUPS_ONLY__:boolean;
+declare const __QA_FOOTNOTES_ONLY__:boolean;
 
 interface NativeReference {
   id:string; text:string|null; width:string; font:string; fontSize:string; lineHeight:string;
@@ -16,6 +17,7 @@ interface NativeReference {
 
 // Included only in a local --qa or --qa-edges build. Release builds eliminate this module.
 export async function runQA(app:App):Promise<void> {
+  if(__QA_FOOTNOTES_ONLY__){const {runFootnoteQA}=await import('./footnote-qa');await runFootnoteQA(app);return;}
   if(__QA_GROUPS_ONLY__){const {runGroupQA}=await import('./group-qa');await runGroupQA(app);return;}
   const base=`${app.vault.configDir}/plugins/simple-canvas-exporter`;
   try {
