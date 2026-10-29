@@ -19,8 +19,8 @@ export default [
     },
   },
   {
-    // This function runs in exported HTML, where Obsidian's DOM extensions do not exist.
-    files: ['src/viewer.ts', 'src/watermark.ts'],
+    // Exported runtime and shared field rendering also run without Obsidian DOM extensions.
+    files: ['src/viewer.ts', 'src/watermark.ts', 'src/fields.ts'],
     rules: { 'obsidianmd/prefer-create-el': 'off', 'obsidianmd/prefer-instanceof': 'off', 'no-restricted-globals': ['warn', ...viewerGlobals] },
   },
 ];

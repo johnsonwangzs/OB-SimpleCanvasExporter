@@ -1,6 +1,6 @@
 # Simple Canvas Exporter
 
-**A demo playground (html page) is represented on https://johnsonwangzs.github.io/LLM-Watermark-Research-Landscape/ , which is a landscape of Large Language Models Watermarking Research. Feel free to play.**
+**A demo playground (html page) is presented on https://johnsonwangzs.github.io/LLM-Watermark-Research-Landscape/ , which is a landscape of Large Language Models Watermarking Research. Feel free to play.**
 
 **English** | [简体中文](README.zh-CN.md)
 
@@ -77,6 +77,26 @@ The panel shows the complete exported text, reflows it to the available width, a
 - Reopening starts at the top or first search match. No reading history, view back/forward, or editing is included. Printing excludes the panel and its controls.
 
 Old HTML files must be exported again to gain the reader. It requires no network access or running Obsidian instance.
+
+## Filter by custom fields (1.4.0)
+
+Write `{sce:Field=Value}` in Canvas text cards to generate filter groups automatically. No positional extraction rules are needed:
+
+```markdown
+WatME Towards Lossless Watermarking Through Lexical Redundancy
+**{sce:Conference=ACL 2024}** | WatME
+```
+
+Canvas reading shows **ACL 2024** | WatME. Editing exposes the field annotation; surrounding `**` follows Obsidian's normal editing mode. Source files retain the original annotation. Reopen an existing Canvas after updating the plugin to refresh its reading content.
+
+- Choose any field names, such as `{sce:Status=In progress}`. Repeat a name for multiple values: `{sce:Topic=Watermarking} {sce:Topic=LLMs}`. Split conference and year into separate fields if you want independent filters.
+- Selected values within a field match **any**; selected fields, Badge conditions and keywords must **all** match. Counts represent distinct cards in the entire document. Fields follow first appearance; values sort by descending card count. Filtering does not change catalog order or counts.
+- The bounded toolbar list scrolls; **All fields** opens a searchable full catalog. Reset one field or all fields independently of keywords and badges. Cards without a selected field do not match. Navigation, dimming and reader behavior follow the existing filters, preserving Canvas positions.
+- No annotations means no additional controls. Field values remain readable offline, without JavaScript, and in print. Re-export older HTML to add filters.
+
+**1.4.0 grammar:** use lowercase `sce:` and the first `=` as the separator. Names and values are trimmed and case-sensitive, nonempty, single-line plain text in one continuous text run. Internal Markdown/HTML, nested braces, backslashes, backticks, asterisks, underscores, square/angle brackets and control characters are unsupported; put formatting around the entire annotation. Malformed/empty fields stay literal. Use inline or fenced code for literal examples; backslashes are not an escape mechanism for this syntax.
+
+Code, links (including link labels), math and badge content are not converted. Hidden/placeholder content and non-text cards do not enter the catalog. Dataview's `[key:: value]` syntax is left untouched, and Dataview is not required.
 
 ## Filter by badges
 
@@ -169,6 +189,7 @@ pnpm test:metadata
 pnpm test:watermark
 pnpm test:preferences
 pnpm test:footnotes
+pnpm test:fields
 ```
 
 To deploy the built plugin to a development vault:

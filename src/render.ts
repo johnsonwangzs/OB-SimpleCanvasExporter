@@ -5,6 +5,7 @@ import { StyleBank, computed, freezeTree, spacer, ensureBadges, resolveColor } f
 import { Assets } from './assets';
 import { asError, withTimeout } from './async';
 import { renderGroup } from './groups';
+import { renderFields } from './fields';
 
 export interface RenderedCard { node:CanvasNode; html:string; frameClass:string; scrollHeight:number; clientHeight:number; visualBounds?:Bounds }
 export class Renderer {
@@ -54,6 +55,7 @@ export class Renderer {
         if(ensureBadges(sizer))this.warnings.add('Badges use the exporter’s built-in fallback style. SimpleBadge is optional.');
         await this.assets.inline(sizer,this.snap.file.path);
         await this.waitForContent(sizer);
+        renderFields(sizer);
       }
       const frozen=freezeTree(sizer,this.bank,`sce-n${index}`);
       const scrollStyle:Record<string,string>={'scrollbar-gutter':computed(preview).scrollbarGutter};

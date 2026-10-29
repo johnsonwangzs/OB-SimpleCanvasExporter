@@ -14,6 +14,7 @@ HTMLElement.prototype.empty=function(){this.replaceChildren();};
 export const getLanguage=()=>window.testLanguage??'zh';
 export class Component{load(){}unload(){}}
 export class Plugin{
+  registerMarkdownPostProcessor(){}
   constructor(app){this.app=app;this.commands=[];}
   addCommand(command){this.commands.push(command);}
   async loadData(){return this.app.loadPluginData?.()??null;}

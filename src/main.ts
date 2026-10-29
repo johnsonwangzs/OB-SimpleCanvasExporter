@@ -7,6 +7,7 @@ import { shell } from 'electron';
 import { type ExportOptions } from './metadata';
 import { createWatermark, normalizeWatermark, watermarkProblem } from './watermark';
 import { exportPreferences, PreferenceStore, type PreferenceActions } from './preferences';
+import { renderFields } from './fields';
 
 declare const __QA__:boolean;
 export default class SimpleCanvasExporter extends Plugin {
@@ -15,6 +16,10 @@ export default class SimpleCanvasExporter extends Plugin {
   private openRequest=0;
   private unloaded=false;
   async onload():Promise<void> {
+    this.registerMarkdownPostProcessor((el,ctx)=>{
+      // Native text cards pass an empty sourcePath and detached blocks; exports pass the Canvas path.
+      if(!ctx.sourcePath||ctx.sourcePath.toLowerCase().endsWith('.canvas')||el.closest('.canvas-node-content'))renderFields(el);
+    });
     await this.preferences.load();
     if(this.unloaded)return;
     this.addCommand({id:'export-html',name:strings().command,checkCallback:checking=>{

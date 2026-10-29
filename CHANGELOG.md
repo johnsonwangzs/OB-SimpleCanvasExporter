@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0
+
+- Add explicit `{sce:Field=Value}` annotations for Canvas text cards. Reading shows the value, retains surrounding Markdown formatting, and leaves the original source available when editing. Native Canvas blocks with an empty source path are supported.
+- Generate field filter groups automatically in exported HTML, with distinct-card counts, multi-select values, per-field/all-field reset, and a searchable complete catalog. Match any selected value within each field and all selected fields alongside existing Badge and keyword conditions.
+- Integrate field-only results with card navigation, folded content, dimming, and the reader panel. Bound the toolbar's field area on narrow screens; preserve static values offline, without JavaScript, and when printing.
+- Keep code, links, math, badges, hidden content and non-text cards out of field catalogs as applicable. Preserve validated field metadata through HTML sanitization. Dataview's `[key:: value]` annotations remain untouched.
+- Add parser, browser and native Obsidian QA coverage for fields, source preservation, combined filters, reader navigation and footnotes. Document the deliberately limited single-line plain-text grammar.
+
 ## 1.3.0
 
 - Fix missing Markdown footnote definitions in exported HTML ([#1](https://github.com/johnsonwangzs/OB-SimpleCanvasExporter/issues/1)). Preserve the footnote section, formatting, and external links at the end of each text card.
